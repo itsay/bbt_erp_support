@@ -1,0 +1,196 @@
+/* Market Overview Styles */
+.market-overview {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.market-overview .header {
+  background-color: #1F1F1F;
+  color: #FFFFFF;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.market-overview .header h2 {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #FFFFFF;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.market-overview .container {
+  background-color: #0A0A0A;
+  padding: 16px 24px 24px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.market-overview .meta {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.market-overview .index-card {
+  background-color: #0A0A0A;
+  border-radius: 4px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.market-overview .card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.market-overview .index-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.market-overview .index-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 100px;
+}
+
+.market-overview .index-indicator.sp500 {
+  background-color: #8085FF;
+}
+
+.market-overview .index-indicator.dow {
+  background-color: #F044FF;
+}
+
+.market-overview .index-indicator.nasdaq {
+  background-color: #FFAA2B;
+}
+
+.market-overview .index-label {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.2857142857em;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.market-overview .index-value {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.2857142857em;
+  color: #FFFFFF;
+  margin: 0;
+  margin-left: auto;
+}
+
+.market-overview .index-change {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.market-overview .change-value,
+.market-overview .change-percent {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.2857142857em;
+  margin: 0;
+}
+
+.market-overview .change-negative {
+  color: #F63C6B;
+}
+
+.market-overview .change-positive {
+  color: #0FEDBE;
+}
+
+.market-overview .chart-container {
+  position: relative;
+  width: 100%;
+  flex-grow: 1;
+  min-height: 300px;
+}
+
+.market-overview .time-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0 0;
+}
+
+.market-overview .time-label {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.2857142857em;
+  color: #999999;
+}
+
+.market-overview .y-axis-labels {
+  position: absolute;
+  left: 8px;
+  top: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.market-overview .y-axis-label {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.2857142857em;
+  color: #999999;
+  text-align: right;
+}
+
+.market-overview .period-buttons {
+  display: flex;
+  gap: 8px;
+  background-color: #1F1F1F;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.market-overview .period-button {
+  background: transparent;
+  border: none;
+  color: #999999;
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.market-overview .period-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.market-overview .period-button.active {
+  background-color: #FFFFFF;
+  color: #0A0A0A;
+}
+
+/* Add Google Font - Golos Text */
+@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&display=swap'); 

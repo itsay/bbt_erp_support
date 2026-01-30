@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Welcome</title>
+    <link rel="stylesheet" href="./AdminLTE/adminlte.css" />
+    <link rel="shortcut icon" href="/img/favicon.ico" />
+</head>
+
+<body class="hold-transition login-page" data-ng-app="App" data-ng-controller="LoginCtrl">
+    <!-- ===== Preloader Start ===== -->
+    <div class="login-box">
+        <div class="login-logo">
+            <b>Vietravel Admin</b>
+        </div>
+        <div class="card">
+            <div class="card-body login-card-body">
+                <div>
+                    <form method="post" data-ng-submit="login()">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" placeholder="Email" data-ng-model="user.email"
+                                autofocus />
+                            <div class="input-group-append">
+                                <div class="input-group-text">
+                                    <span class="fas fa-envelope"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <input type="password" class="form-control" placeholder="Password"
+                                data-ng-model="user.password" />
+                            <div class="input-group-append">
+                                <div class="input-group-text">
+                                    <span class="fas fa-lock"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-8">
+                                <span style="color: red">{{user.msg}}</span>
+                            </div>
+
+                            <div class="col-4">
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    Sign In
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="./js/angular.min.js"></script>
+    <script type="text/javascript" src="./js/angular-route.min.js"></script>
+    <script type="text/javascript">
+        var App = angular.module("App", []);
+        App.controller("LoginCtrl", [
+            "$scope",
+            "$http",
+            function ($scope, $http) {
+                $scope.user = {};
+                $scope.login = function () {
+                    if (!$scope.user.email || !$scope.user.password) {
+                        $scope.user.msg = "Vui lòng nhập email/password";
+                        return;
+                    }
+                    let email = $scope.user.email.trim();
+                    if (email.indexOf("@") === -1) {
+                        email += "@gmail.com";
+                    }
+                    $http
+                        .post("/v1/user/login", {
+                            user: { email: email, password: $scope.user.password },
+                        })
+                        .then(function (response) {
+                            if (response.data.s === 200) window.location = "/";
+                            else $scope.user.msg = response.data.msg;
+                        });
+                };
+            },
+        ]);
+    </script>
+</body>
+</html>
