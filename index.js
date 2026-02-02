@@ -9,7 +9,7 @@ const webhook = require("./route/webhook");
 
 RedisService.initConnection();
 if (cluster.isMaster) {
-    let cpuCount = 4; //require('os').cpus().length
+    let cpuCount = require('os').cpus().length; //require('os').cpus().length
     for (let i = 0; i < cpuCount; ++i) {
         let worker = cluster.fork();
         worker.on("message", function (request) {
