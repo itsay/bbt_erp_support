@@ -51,7 +51,7 @@ if (cluster.isMaster) {
     mongoose.connect(
         process.env.MONGODB,
         {
-            maxPoolSize: 15,
+            maxPoolSize: 5,
             useNewUrlParser: true,
             useUnifiedTopology: true,
         },
