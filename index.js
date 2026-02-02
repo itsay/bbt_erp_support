@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const cluster = require("cluster");
 const RedisService = require("./route/util/redisController");
 const TrackingController = require("./route/tracking/trackingController");
+const webhook = require("./route/webhook");
 
 RedisService.initConnection();
 if (cluster.isMaster) {
@@ -39,6 +40,7 @@ if (cluster.isMaster) {
         });
         return res.json({ s: 200, msg: "Deployed successfully" });
     });
+    app.use('/webhook', webhook)
     app.use("/v1", home);
     app.get('*', function (req, res) {
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
