@@ -13,7 +13,7 @@ function OmisellJobController() {
             let page = 1
             const omisellOrderNos = []
             const newestOrder = await Order.findOne({}).sort({ updated_time: -1 });
-            const updatedTime = newestOrder?.updated_time ?? ;
+            const updatedTime = newestOrder?.updated_time ?? 0;
             let hasMorePages = true;
 
             while (hasMorePages) {
