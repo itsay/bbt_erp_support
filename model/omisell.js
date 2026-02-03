@@ -14,10 +14,12 @@ const OrderDetail = mongoose.Schema({
 }, { versionKey: false, timestamps: false, strict: false })
 
 
-const _order = mongoose.model('bbt_omisell_orders', Order)
-const _order_detail = mongoose.model('bbt_omisell_order_detail', OrderDetail)
+const OrderRevenue = mongoose.Schema({
+}, { versionKey: false, timestamps: false, strict: false })
+
 
 module.exports = {
-  Order: _order,
-  OrderDetail: _order_detail
+  Order: mongoose.model('bbt_omisell_orders', Order),
+  OrderDetail: mongoose.model('bbt_omisell_order_detail', OrderDetail),
+  OrderRevenue: mongoose.model('bbt_omisell_order_revenue', OrderRevenue)
 }

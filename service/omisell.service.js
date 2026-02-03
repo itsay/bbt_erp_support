@@ -87,7 +87,7 @@ function OmiSellService() {
         requestOmiWithAuth: SELF.requestOmiWithAuth,
         /**
          * Get orders
-         * @param {Object} params - Query parameters
+         * @param {Object} params - Query parameters (https://developers.omisell.com/api-5173039)
          * @returns {Promise<Array>} Array of orders
          */
         getOrders: async (params = {}) => {
@@ -114,7 +114,8 @@ function OmiSellService() {
             } catch (error) {
                 console.error('Get order detail failed:', error.message);
             }
-        }
+        },
+        getOrderRevenue: async
     };
 }
 
