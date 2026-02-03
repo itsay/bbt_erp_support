@@ -115,8 +115,30 @@ function OmiSellService() {
                 console.error('Get order detail failed:', error.message);
             }
         },
-        getOrderRevenue: async
-    };
+        /**
+         * 
+         * @param {Object} params 
+         * - page_size
+         * - page
+         * - completed_from
+         * - completed_to
+         * @param {Object} extraHeaders 
+         * @returns 
+         */
+        getOrderRevenue: async (params = {}, extraHeaders = {}) => {
+            const base = 'https://api.omisell.com/api/v2/public/finance/order-revenue';
+            const headers = {};
+            if (extraHeaders && typeof extraHeaders === 'object') {
+                if (extraHeaders['Seller-ID']) headers['Seller-ID'] = extraHeaders['Seller-ID'];
+                if (extraHeaders['Country']) headers['Country'] = extraHeaders['Country'];
+            }
+            const qs = SELF.buildQuery(params);
+            const url = qs ? `${base}?${qs}` : base;
+            const res = await SELF.requestOmiWithAuth(url, { method: 'GET', headers });
+            const results = res.data?.data?.results || [];
+            return results;
+        }
+    }
 }
 
 module.exports = OmiSellService();

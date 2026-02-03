@@ -1,7 +1,7 @@
 function Util() {
     return {
-        sleep: (ms) => {
-            return new Promise(resolve => setTimeout(resolve, ms));
+        sleep: (second) => {
+            return new Promise(resolve => setTimeout(resolve, second * 1000));
         }
     }
 }

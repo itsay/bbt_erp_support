@@ -13,7 +13,7 @@ function OmisellJobController() {
             let page = 1
             const omisellOrderNos = []
             const newestOrder = await Order.findOne({}).sort({ updated_time: -1 });
-            const updatedTime = newestOrder?.updated_time ?? 0;
+            const updatedTime = newestOrder?.updated_time ?? ;
             let hasMorePages = true;
 
             while (hasMorePages) {
@@ -36,7 +36,7 @@ function OmisellJobController() {
                     };
                 }).filter(Boolean);
                 if (ops.length) {
-                    coll.bulkWrite(ops, { ordered: false }).catch(() => { });
+                    await Order.bulkWrite(ops, { ordered: false });
                 }
 
                 rs.forEach(order => {
@@ -46,10 +46,16 @@ function OmisellJobController() {
                 });
 
                 console.log(`Page ${page} processed. Orders count: ${rs.length}`);
+
+                if (rs.length < pageSize) {
+                    hasMorePages = false;
+                } else {
+                    await Util.sleep(2);
+                }
                 page++;
             }
             console.log(`Total orders saved: ${omisellOrderNos.length}`);
-            return omisellOrderNos;
+            return { updatedTime, omisellOrderNos };
         },
         fetchAndSaveOrderDetails: async (orderNos = []) => {
             let processed = 0;
@@ -84,14 +90,53 @@ function OmisellJobController() {
             }
             console.log(`Total order details saved: ${processed}/${total}`);
         },
+        /**
+         * 
+         * @param {number} updatedFrom 
+         */
         fetchAndSaveOrderRevenues: async (updatedFrom) => {
+            const pageSize = 100;
+            let page = 1;
+            let hasMorePages = true;
+
+            while (hasMorePages) {
+                const rs = await OmiSellService.getOrderRevenue({
+                    completed_from: updatedFrom,
+                    page_size: pageSize,
+                    page
+                });
+
+                const ops = rs.map(o => {
+                    const key = o.omisell_order_number || o.order_number;
+                    if (!key) return null;
+                    return {
+                        updateOne: {
+                            filter: { omisell_order_number: key },
+                            update: { $set: { ...o, omisell_order_number: key, fetchedAt: new Date() } },
+                            upsert: true
+                        }
+                    };
+                }).filter(Boolean);
+
+                if (ops.length) {
+                    await OrderRevenue.bulkWrite(ops, { ordered: false });
+                }
+
+                console.log(`Page ${page} processed. Revenue count: ${rs.length}`);
+
+                if (rs.length < pageSize) hasMorePages = false;
+                else {
+                    await Util.sleep(2);
+                }
+                page++;
+            }
         }
     }
     return {
         jobSaveOrders: async () => {
             const { updatedTime, omisellOrderNos } = await SELF.fetchAndSaveOrders();
             await SELF.fetchAndSaveOrderDetails(omisellOrderNos);
-            SELF.fetchAndSaveOrderRevenues(updatedTime);
+            // await SELF.fetchAndSaveOrderRevenues(updatedTime);
         },
     }
 }
