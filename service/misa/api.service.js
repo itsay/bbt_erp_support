@@ -276,14 +276,6 @@ function MisaApiService() {
                     },
                     body: JSON.stringify(Array.isArray(items) ? items : [items])
                 });
-
-                console.log('headers', {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'Clientid': clientId,
-                    'Accept': 'application/json'
-                })
-
                 const data = await response.json();
                 console.log(`[MisaApiService] - [addCrmObjects] - data=${JSON.stringify(data)}`);
                 if (!data?.success) {
@@ -318,8 +310,9 @@ function MisaApiService() {
                     continue;
                 }
                 const source = detailDoc || doc;
-                const crmOrder = SELF.mapOmisellToCrmSaleOrder(source, pickups);
+                let crmOrder
                 try {
+                    crmOrder = SELF.mapOmisellToCrmSaleOrder(source, pickups);
                     console.time(`Push ${orderNo}`);
                     const misaId = await SELF.addCrmObjects('SaleOrders', [crmOrder], token, SELF.AMIS_CLIENT_ID, SELF.AMIS_CRM_URL);
                     console.log(`Push SUCCESS | omisell_order_number=${orderNo} | misaId=${misaId}`);
