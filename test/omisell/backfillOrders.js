@@ -1,5 +1,4 @@
 require("dotenv").config();
-const OmiSellService = require("../../service/omisell.service");
 const OmisellJobController = require("../../route/omisell/omisell.job.controller");
 const mongoose = require("mongoose");
 
