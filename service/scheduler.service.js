@@ -47,6 +47,7 @@ function SchedulerService() {
             });
         },
         stopJobs: () => {
+            console.log(`SchedulerService.stopJobs: stop all jobs`);
             SELF.jobs.forEach((cronJob) => {
                 cronJob.stop();
             });

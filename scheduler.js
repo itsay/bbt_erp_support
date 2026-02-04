@@ -19,8 +19,5 @@ mongoose.connect(
         console.log(`Connected mongodb for app`);
         SchedulerService.startJobs();
 
-        process.on("exit", () => {
-            SchedulerService.stopJobs();
-        });
     }
 )
