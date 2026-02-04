@@ -1,4 +1,4 @@
-function OmisellCrawlService() {
+function OmisellApiService() {
     const SELF = {
         config: {
             accessToken: null,
@@ -154,4 +154,4 @@ function OmisellCrawlService() {
     }
 }
 
-module.exports = OmisellCrawlService();
+module.exports = OmisellApiService();

@@ -1,6 +1,8 @@
 require("dotenv").config();
 const OmisellJobController = require("../../route/omisell/omisell.job.controller");
 const mongoose = require("mongoose");
+const { Order } = require('../../model/omisell')
+const MisaApiService = require("../../service/misa/api.service");
 
 
 
@@ -31,6 +33,7 @@ mongoose.connect(
 
 
 async function test() {
-    await OmisellJobController.jobSaveOrders()
+    await MisaApiService.test()
+
     // await OmisellJobController.jobSavePickups()
 }

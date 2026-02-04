@@ -1,4 +1,4 @@
-const OmisellCrawlService = require('../../service/omisell/crawl.service')
+const OmisellApiService = require('../../service/omisell/api.service')
 const { Order, OrderDetail, OrderRevenue, PickupList } = require('../../model/omisell')
 const Util = require('../util/util')
 
@@ -12,7 +12,7 @@ function OmisellJobController() {
             let processed = 0
 
             while (true) {
-                const rs = await OmisellCrawlService.getOrders({
+                const rs = await OmisellApiService.getOrders({
                     updated_from: updatedTime,
                     page_size: pageSize,
                     page
@@ -68,11 +68,11 @@ function OmisellJobController() {
             for (let bi = 0; bi < batches.length; bi++) {
                 const batch = batches[bi];
                 for (const orderNo of batch) {
-                    let detail = await OmisellCrawlService.getOrderDetail(orderNo);
+                    let detail = await OmisellApiService.getOrderDetail(orderNo);
                     if (detail?.data?.retry_after) {
                         console.log('wait after', detail?.data?.retry_after);
                         await Util.sleep(Number(detail.data.retry_after) + 1);
-                        detail = await OmisellCrawlService.getOrderDetail(orderNo);
+                        detail = await OmisellApiService.getOrderDetail(orderNo);
                     }
                     await OrderDetail.updateOne(
                         { omisell_order_number: orderNo },
@@ -93,7 +93,7 @@ function OmisellJobController() {
             let page = 1;
 
             while (true) {
-                const rs = await OmisellCrawlService.getOrderRevenue({
+                const rs = await OmisellApiService.getOrderRevenue({
                     completed_from: updatedFrom,
                     page_size: pageSize,
                     page
@@ -137,7 +137,7 @@ function OmisellJobController() {
             let page = 1;
 
             while (true) {
-                const rs = await OmisellCrawlService.getPickup({
+                const rs = await OmisellApiService.getPickup({
                     page_size: pageSize,
                     page
                 });
