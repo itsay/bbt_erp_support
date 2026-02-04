@@ -5,7 +5,6 @@ const mongoose = require("mongoose");
 const cluster = require("cluster");
 const RedisService = require("./route/util/redisController");
 const TrackingController = require("./route/tracking/trackingController");
-const SchedulerService = require("./service/scheduler.service");
 const webhook = require("./route/webhook");
 
 RedisService.initConnection();
@@ -18,11 +17,6 @@ if (cluster.isMaster) {
             handleRequestFromWorker(request);
         });
     }
-    SchedulerService.startJobs();
-
-    process.on("exit", () => {
-        SchedulerService.stopJobs();
-    });
 } else {
     const home = require("./route/home");
     const path = require("path");
