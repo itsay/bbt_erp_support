@@ -1,5 +1,6 @@
 require("dotenv").config();
-const OmmiSellService = require("../../service/omisell.service");
+const OmiSellService = require("../../service/omisell.service");
+const OmisellJobController = require("../../route/omisell/omisell.job.controller");
 const mongoose = require("mongoose");
 
 
@@ -8,9 +9,9 @@ mongoose.set("strictQuery", true);
 mongoose.Promise = global.Promise;
 
 mongoose.connect(
-    config.MONGODB,
+    process.env.MONGODB,
     {
-        ssl: true,
+        ssl: false,
         tlsAllowInvalidCertificates: true,
         maxPoolSize: 15,
         useNewUrlParser: true,
@@ -22,7 +23,7 @@ mongoose.connect(
             return
         }
         console.log(`Connected mongodb for app`);
-        test()
+        await test()
 
         console.log('done')
     }
@@ -31,9 +32,5 @@ mongoose.connect(
 
 
 async function test() {
-    const orders = await OmmiSellService.getOrders();
-    const order = orders[0]
-    console.log(JSON.stringify(order, null, 2))
-    const orderDetail = await OmmiSellService.getOrderDetail(order.omisell_order_number);
-    console.log(JSON.stringify(orderDetail, null, 2));
+    await OmisellJobController.jobSaveOrders()
 }

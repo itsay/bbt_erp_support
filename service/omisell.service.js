@@ -96,9 +96,10 @@ function OmiSellService() {
                 const qs = SELF.buildQuery(params);
                 const url = qs ? `${base}?${qs}` : base;
                 const res = await SELF.requestOmiWithAuth(url, { method: 'GET' });
-                return res.data.data.results;
+                console.log('res.data', res.data)
+                return res.data;
             } catch (error) {
-                console.error('Get orders failed:', error.message);
+                console.error('Get orders failed:', error.response.data);
             }
         },
         /**
@@ -112,7 +113,7 @@ function OmiSellService() {
                 const res = await SELF.requestOmiWithAuth(url, { method: 'GET', redirect: 'follow' });
                 return res.data
             } catch (error) {
-                console.error('Get order detail failed:', error.message);
+                console.error('Get order detail failed:', error.response.data);
             }
         },
         /**
@@ -127,6 +128,25 @@ function OmiSellService() {
          */
         getOrderRevenue: async (params = {}, extraHeaders = {}) => {
             const base = 'https://api.omisell.com/api/v2/public/finance/order-revenue';
+            const headers = {};
+            if (extraHeaders && typeof extraHeaders === 'object') {
+                if (extraHeaders['Seller-ID']) headers['Seller-ID'] = extraHeaders['Seller-ID'];
+                if (extraHeaders['Country']) headers['Country'] = extraHeaders['Country'];
+            }
+            const qs = SELF.buildQuery(params);
+            const url = qs ? `${base}?${qs}` : base;
+            const res = await SELF.requestOmiWithAuth(url, { method: 'GET', headers });
+            const results = res.data?.data?.results || [];
+            return results;
+        },
+        /**
+         * Get pickup list
+         * @param {Object} params - page_size, page
+         * @param {Object} extraHeaders - Seller-ID, Country
+         * @returns {Promise<Array>} Array of pickup addresses
+         */
+        getPickup: async (params = {}, extraHeaders = {}) => {
+            const base = 'https://api.omisell.com/api/v2/public/pickup/list';
             const headers = {};
             if (extraHeaders && typeof extraHeaders === 'object') {
                 if (extraHeaders['Seller-ID']) headers['Seller-ID'] = extraHeaders['Seller-ID'];

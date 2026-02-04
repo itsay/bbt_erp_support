@@ -1,5 +1,5 @@
 const OmiSellService = require('../../service/omisell.service')
-const { Order, OrderDetail, OrderRevenue } = require('../../model/omisell')
+const { Order, OrderDetail, OrderRevenue, PickupList } = require('../../model/omisell')
 const Util = require('../util/util')
 
 
@@ -13,17 +13,26 @@ function OmisellJobController() {
             let page = 1
             const omisellOrderNos = []
             const newestOrder = await Order.findOne({}).sort({ updated_time: -1 });
-            const updatedTime = newestOrder?.updated_time ?? 0;
-            let hasMorePages = true;
+            const updatedTime = newestOrder?.updated_time ?? 1769878800; // 01/02/2026
 
-            while (hasMorePages) {
+            let processed = 0
+
+            while (true) {
                 const rs = await OmiSellService.getOrders({
                     updated_from: updatedTime,
                     page_size: pageSize,
                     page
                 });
 
-                const ops = rs.map(o => {
+                const { count, next, results } = rs?.data || {};
+                const orders = results || [];
+
+                if (page === 1) {
+                    console.log(`Total orders to fetch: ${count}`);
+                    processed += results.length;
+                }
+
+                const ops = orders.map(o => {
                     const key = o.omisell_order_number || o.order_number;
                     o.omisell_order_number = key;
                     if (!key) return null;
@@ -35,23 +44,24 @@ function OmisellJobController() {
                         }
                     };
                 }).filter(Boolean);
+
                 if (ops.length) {
                     await Order.bulkWrite(ops, { ordered: false });
                 }
 
-                rs.forEach(order => {
+                orders.forEach(order => {
                     if (order.omisell_order_number) {
                         omisellOrderNos.push(order.omisell_order_number);
                     }
                 });
 
-                console.log(`Page ${page} processed. Orders count: ${rs.length}`);
+                console.log(`Page ${page} processed. Orders count: ${orders.length}/${count}`);
 
-                if (rs.length < pageSize) {
-                    hasMorePages = false;
-                } else {
-                    await Util.sleep(2);
+                if (!next) {
+                    break;
                 }
+
+                await Util.sleep(2);
                 page++;
             }
             console.log(`Total orders saved: ${omisellOrderNos.length}`);
@@ -59,7 +69,7 @@ function OmisellJobController() {
         },
         fetchAndSaveOrderDetails: async (orderNos = []) => {
             let processed = 0;
-            const total = orderNos.length;
+            let total = orderNos.length;
             console.log(`Fetching order details for ${total} orders`);
             const chunk = (arr, size) => {
                 const out = [];
@@ -130,7 +140,43 @@ function OmisellJobController() {
                 }
                 page++;
             }
-        }
+        },
+        fetchAndSavePickups: async () => {
+            const pageSize = 25;
+            let page = 1;
+            let hasMorePages = true;
+
+            while (hasMorePages) {
+                const rs = await OmiSellService.getPickup({
+                    page_size: pageSize,
+                    page
+                });
+
+                const ops = rs.map(p => {
+                    const key = p.id;
+                    if (!key) return null;
+                    return {
+                        updateOne: {
+                            filter: { id: key },
+                            update: { $set: { ...p, fetchedAt: new Date() } },
+                            upsert: true
+                        }
+                    };
+                }).filter(Boolean);
+
+                if (ops.length) {
+                    await PickupList.bulkWrite(ops, { ordered: false });
+                }
+
+                console.log(`Page ${page} processed. Pickup count: ${rs.length}`);
+
+                if (rs.length < pageSize) hasMorePages = false;
+                else {
+                    await Util.sleep(2);
+                }
+                page++;
+            }
+        },
     }
     return {
         jobSaveOrders: async () => {
@@ -138,6 +184,9 @@ function OmisellJobController() {
             await SELF.fetchAndSaveOrderDetails(omisellOrderNos);
             // await SELF.fetchAndSaveOrderRevenues(updatedTime);
         },
+        jobSavePickup: async () => {
+            await SELF.fetchAndSavePickups();
+        }
     }
 }
 
