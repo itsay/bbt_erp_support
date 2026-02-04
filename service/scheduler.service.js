@@ -1,3 +1,7 @@
+
+const CronJob = require('cron').CronJob
+const OmisellJobController = require('../route/omisell/omisell.job.controller')
+
 /**
  * Example:
  * [
@@ -7,10 +11,20 @@
  *      tags: ['omisell']
  * ]
  */
-const CronJob = require('cron').CronJob
-
-
-const JOB_DEFINITIONS = []
+const JOB_DEFINITIONS = [
+    {
+        job: '*/5 * * * * *',
+        func: OmisellJobController.jobSaveOrders,
+        args: [],
+        tags: ['omisell']
+    },
+    {
+        job: '*/5 * * * * *',
+        func: OmisellJobController.jobSavePickups,
+        args: [],
+        tags: ['omisell']
+    }
+]
 
 
 function SchedulerService() {
@@ -18,11 +32,14 @@ function SchedulerService() {
         jobs: []
     }
     return {
-        startJobs: async () => {
+        startJobs: () => {
             JOB_DEFINITIONS.forEach((job) => {
+                console.log(`SchedulerService.startJobs: start job ${job.func.name} with cron ${job.job}`)
                 const cronJob = new CronJob(job.job, async () => {
                     try {
+                        console.log(`Job ${job.func.name} starts`)
                         await job.func(...job.args);
+                        console.log(`Job ${job.func.name} ends`)
                     } catch (error) {
                         console.error(`Job ${job.func.name} failed:`, error);
                     }
@@ -31,7 +48,7 @@ function SchedulerService() {
                 SELF.jobs.push(cronJob);
             });
         },
-        stopJobs: async () => {
+        stopJobs: () => {
             SELF.jobs.forEach((cronJob) => {
                 cronJob.stop();
             });

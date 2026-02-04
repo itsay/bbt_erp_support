@@ -198,7 +198,7 @@ function OmisellJobController() {
             await SELF.fetchAndSaveOrderDetails(omisellOrderNos);
             // await SELF.fetchAndSaveOrderRevenues(updatedTime);
         },
-        jobSavePickup: async () => {
+        jobSavePickups: async () => {
             await SELF.fetchAndSavePickups();
         }
     }
