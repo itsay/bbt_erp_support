@@ -7,11 +7,12 @@ function OmiSellService() {
             accessToken: null,
             refreshToken: null,
             apiKey: process.env.OMISELL_API_KEY,
-            apiSecret: process.env.OMISELL_API_SECRET
+            apiSecret: process.env.OMISELL_API_SECRET,
+            baseUrl: process.env.OMISELL_API_BASE_URL
         },
         getToken: async () => {
             try {
-                const response = await axios.post('https://api.omisell.com/api/v1/auth/token/get/', {
+                const response = await axios.post(`${SELF.config.baseUrl}/api/v1/auth/token/get/`, {
                     api_key: SELF.config.apiKey,
                     api_secret: SELF.config.apiSecret
                 });
@@ -29,7 +30,7 @@ function OmiSellService() {
         refreshAccessToken: async () => {
             if (!SELF.config.refreshToken) throw new Error('No refresh token');
             try {
-                const response = await axios.post('https://api.omisell.com/api/v1/auth/token/refresh/', {
+                const response = await axios.post(`${SELF.config.baseUrl}/api/v1/auth/token/refresh/`, {
                     refresh: SELF.config.refreshToken
                 });
                 const data = response.data;
@@ -92,7 +93,7 @@ function OmiSellService() {
          */
         getOrders: async (params = {}) => {
             try {
-                const base = 'https://api.omisell.com/api/v2/public/order/list';
+                const base = `${SELF.config.baseUrl}/api/v2/public/order/list`;
                 const qs = SELF.buildQuery(params);
                 const url = qs ? `${base}?${qs}` : base;
                 const res = await SELF.requestOmiWithAuth(url, { method: 'GET' });
@@ -109,7 +110,7 @@ function OmiSellService() {
          */
         getOrderDetail: async (omisellOrderNumber) => {
             try {
-                const url = `https://api.omisell.com/api/v2/public/order/${encodeURIComponent(omisellOrderNumber)}`;
+                const url = `${SELF.config.baseUrl}/api/v2/public/order/${encodeURIComponent(omisellOrderNumber)}`;
                 const res = await SELF.requestOmiWithAuth(url, { method: 'GET', redirect: 'follow' });
                 return res.data
             } catch (error) {
@@ -127,7 +128,7 @@ function OmiSellService() {
          * @returns 
          */
         getOrderRevenue: async (params = {}, extraHeaders = {}) => {
-            const base = 'https://api.omisell.com/api/v2/public/finance/order-revenue';
+            const base = `${SELF.config.baseUrl}/api/v2/public/finance/order-revenue`;
             const headers = {};
             if (extraHeaders && typeof extraHeaders === 'object') {
                 if (extraHeaders['Seller-ID']) headers['Seller-ID'] = extraHeaders['Seller-ID'];
@@ -136,7 +137,7 @@ function OmiSellService() {
             const qs = SELF.buildQuery(params);
             const url = qs ? `${base}?${qs}` : base;
             const res = await SELF.requestOmiWithAuth(url, { method: 'GET', headers });
-            const results = res.data?.data?.results || [];
+            const results = res.data;
             return results;
         },
         /**
@@ -146,7 +147,7 @@ function OmiSellService() {
          * @returns {Promise<Array>} Array of pickup addresses
          */
         getPickup: async (params = {}, extraHeaders = {}) => {
-            const base = 'https://api.omisell.com/api/v2/public/pickup/list';
+            const base = `${SELF.config.baseUrl}/api/v2/public/pickup/list`;
             const headers = {};
             if (extraHeaders && typeof extraHeaders === 'object') {
                 if (extraHeaders['Seller-ID']) headers['Seller-ID'] = extraHeaders['Seller-ID'];
@@ -155,7 +156,7 @@ function OmiSellService() {
             const qs = SELF.buildQuery(params);
             const url = qs ? `${base}?${qs}` : base;
             const res = await SELF.requestOmiWithAuth(url, { method: 'GET', headers });
-            const results = res.data?.data?.results || [];
+            const results = res.data;
             return results;
         }
     }
