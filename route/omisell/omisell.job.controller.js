@@ -1,4 +1,4 @@
-const OmiSellService = require('../../service/omisell.service')
+const OmisellCrawlService = require('../../service/omisell/crawl.service')
 const { Order, OrderDetail, OrderRevenue, PickupList } = require('../../model/omisell')
 const Util = require('../util/util')
 
@@ -18,7 +18,7 @@ function OmisellJobController() {
             let processed = 0
 
             while (true) {
-                const rs = await OmiSellService.getOrders({
+                const rs = await OmisellCrawlService.getOrders({
                     updated_from: updatedTime,
                     page_size: pageSize,
                     page
@@ -29,8 +29,8 @@ function OmisellJobController() {
 
                 if (page === 1) {
                     console.log(`Total orders to fetch: ${count}`);
-                    processed += results.length;
                 }
+                processed += results.length;
 
                 const ops = orders.map(o => {
                     const key = o.omisell_order_number || o.order_number;
@@ -55,7 +55,7 @@ function OmisellJobController() {
                     }
                 });
 
-                console.log(`Page ${page} processed. Orders count: ${orders.length}/${count}`);
+                console.log(`Page ${page} processed. Orders count: ${processed}/${count}`);
 
                 if (!next) {
                     break;
@@ -80,11 +80,11 @@ function OmisellJobController() {
             for (let bi = 0; bi < batches.length; bi++) {
                 const batch = batches[bi];
                 for (const orderNo of batch) {
-                    let detail = await OmiSellService.getOrderDetail(orderNo);
+                    let detail = await OmisellCrawlService.getOrderDetail(orderNo);
                     if (detail?.data?.retry_after) {
                         console.log('wait after', detail?.data?.retry_after);
                         await Util.sleep(Number(detail.data.retry_after) + 1);
-                        detail = await OmiSellService.getOrderDetail(orderNo);
+                        detail = await OmisellCrawlService.getOrderDetail(orderNo);
                     }
                     await OrderDetail.updateOne(
                         { omisell_order_number: orderNo },
@@ -109,7 +109,7 @@ function OmisellJobController() {
             let page = 1;
 
             while (true) {
-                const rs = await OmiSellService.getOrderRevenue({
+                const rs = await OmisellCrawlService.getOrderRevenue({
                     completed_from: updatedFrom,
                     page_size: pageSize,
                     page
@@ -153,7 +153,7 @@ function OmisellJobController() {
             let page = 1;
 
             while (true) {
-                const rs = await OmiSellService.getPickup({
+                const rs = await OmisellCrawlService.getPickup({
                     page_size: pageSize,
                     page
                 });

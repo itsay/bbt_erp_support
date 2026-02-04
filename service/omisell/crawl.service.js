@@ -1,7 +1,4 @@
-const axios = require("axios");
-
-
-function OmiSellService() {
+function OmisellCrawlService() {
     const SELF = {
         config: {
             accessToken: null,
@@ -12,11 +9,16 @@ function OmiSellService() {
         },
         getToken: async () => {
             try {
-                const response = await axios.post(`${SELF.config.baseUrl}/api/v1/auth/token/get/`, {
-                    api_key: SELF.config.apiKey,
-                    api_secret: SELF.config.apiSecret
+                const response = await fetch(`${SELF.config.baseUrl}/api/v1/auth/token/get/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        api_key: SELF.config.apiKey,
+                        api_secret: SELF.config.apiSecret
+                    })
                 });
-                const data = response.data;
+                if (!response.ok) throw new Error(`Token request failed: ${response.status}`);
+                const data = await response.json();
                 if (data && data.data) {
                     SELF.config.accessToken = data.data.token;
                     SELF.config.refreshToken = data.data.refresh_token;
@@ -30,10 +32,15 @@ function OmiSellService() {
         refreshAccessToken: async () => {
             if (!SELF.config.refreshToken) throw new Error('No refresh token');
             try {
-                const response = await axios.post(`${SELF.config.baseUrl}/api/v1/auth/token/refresh/`, {
-                    refresh: SELF.config.refreshToken
+                const response = await fetch(`${SELF.config.baseUrl}/api/v1/auth/token/refresh/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        refresh: SELF.config.refreshToken
+                    })
                 });
-                const data = response.data;
+                if (!response.ok) throw new Error(`Refresh token request failed: ${response.status}`);
+                const data = await response.json();
                 if (data && data.data) {
                     SELF.config.accessToken = data.data.token || SELF.config.accessToken;
                     SELF.config.refreshToken = data.data.refresh_token || SELF.config.refreshToken;
@@ -51,28 +58,20 @@ function OmiSellService() {
                 Authorization: `Omi ${SELF.config.accessToken}`,
                 'Content-Type': 'application/json'
             };
-            try {
-                return await axios({
-                    url: endpoint,
-                    ...options,
-                    headers
-                });
-            } catch (error) {
-                if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-                    await SELF.refreshAccessToken();
-                    const retryHeaders = {
-                        ...options.headers,
-                        Authorization: `Omi ${SELF.config.accessToken}`,
-                        'Content-Type': 'application/json'
-                    };
-                    return await axios({
-                        url: endpoint,
-                        ...options,
-                        headers: retryHeaders
-                    });
-                }
-                throw error;
+            const response = await fetch(endpoint, { ...options, headers });
+            if (response.status === 401 || response.status === 403) {
+                await SELF.refreshAccessToken();
+                const retryHeaders = {
+                    ...options.headers,
+                    Authorization: `Omi ${SELF.config.accessToken}`,
+                    'Content-Type': 'application/json'
+                };
+                const retryResponse = await fetch(endpoint, { ...options, headers: retryHeaders });
+                if (!retryResponse.ok) throw new Error(`Request failed: ${retryResponse.status}`);
+                return await retryResponse.json();
             }
+            if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+            return await response.json();
         },
         buildQuery: (params = {}) => {
             const qp = new URLSearchParams();
@@ -96,11 +95,9 @@ function OmiSellService() {
                 const base = `${SELF.config.baseUrl}/api/v2/public/order/list`;
                 const qs = SELF.buildQuery(params);
                 const url = qs ? `${base}?${qs}` : base;
-                const res = await SELF.requestOmiWithAuth(url, { method: 'GET' });
-                console.log('res.data', res.data)
-                return res.data;
+                return await SELF.requestOmiWithAuth(url, { method: 'GET' });
             } catch (error) {
-                console.error('Get orders failed:', error.response.data);
+                console.error('Get orders failed:', error.message);
             }
         },
         /**
@@ -111,10 +108,9 @@ function OmiSellService() {
         getOrderDetail: async (omisellOrderNumber) => {
             try {
                 const url = `${SELF.config.baseUrl}/api/v2/public/order/${encodeURIComponent(omisellOrderNumber)}`;
-                const res = await SELF.requestOmiWithAuth(url, { method: 'GET', redirect: 'follow' });
-                return res.data
+                return await SELF.requestOmiWithAuth(url, { method: 'GET', redirect: 'follow' });
             } catch (error) {
-                console.error('Get order detail failed:', error.response.data);
+                console.error('Get order detail failed:', error.message);
             }
         },
         /**
@@ -136,9 +132,7 @@ function OmiSellService() {
             }
             const qs = SELF.buildQuery(params);
             const url = qs ? `${base}?${qs}` : base;
-            const res = await SELF.requestOmiWithAuth(url, { method: 'GET', headers });
-            const results = res.data;
-            return results;
+            return await SELF.requestOmiWithAuth(url, { method: 'GET', headers });
         },
         /**
          * Get pickup list
@@ -155,11 +149,9 @@ function OmiSellService() {
             }
             const qs = SELF.buildQuery(params);
             const url = qs ? `${base}?${qs}` : base;
-            const res = await SELF.requestOmiWithAuth(url, { method: 'GET', headers });
-            const results = res.data;
-            return results;
+            return await SELF.requestOmiWithAuth(url, { method: 'GET', headers });
         }
     }
 }
 
-module.exports = OmiSellService();
+module.exports = OmisellCrawlService();
