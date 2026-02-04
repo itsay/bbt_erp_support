@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config({ path: __dirname + "/.env" });
 const SchedulerService = require("./service/scheduler.service");
 const mongoose = require("mongoose");
 

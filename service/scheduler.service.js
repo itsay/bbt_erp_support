@@ -13,16 +13,14 @@ const OmisellJobController = require('../route/omisell/omisell.job.controller')
  */
 const JOB_DEFINITIONS = [
     {
-        job: '*/5 * * * *',
+        job: '0 23 * * *',
         func: OmisellJobController.jobSaveOrders,
         args: [],
-        tags: ['omisell']
     },
     {
-        job: '*/5 * * * *',
+        job: '0 23 * * *',
         func: OmisellJobController.jobSavePickups,
         args: [],
-        tags: ['omisell']
     }
 ]
 

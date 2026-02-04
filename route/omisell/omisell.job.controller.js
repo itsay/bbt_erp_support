@@ -5,15 +5,9 @@ const Util = require('../util/util')
 
 function OmisellJobController() {
     const SELF = {
-        /**
-         * 
-         */
-        fetchAndSaveOrders: async () => {
+        fetchAndSaveOrders: async (updatedTime) => {
             const pageSize = 100
             let page = 1
-            const omisellOrderNos = []
-            const newestOrder = await Order.findOne({}).sort({ updated_time: -1 });
-            const updatedTime = newestOrder?.updated_time ?? 1769878800; // 01/02/2026
 
             let processed = 0
 
@@ -49,12 +43,6 @@ function OmisellJobController() {
                     await Order.bulkWrite(ops, { ordered: false });
                 }
 
-                orders.forEach(order => {
-                    if (order.omisell_order_number) {
-                        omisellOrderNos.push(order.omisell_order_number);
-                    }
-                });
-
                 console.log(`Page ${page} processed. Orders count: ${processed}/${count}`);
 
                 if (!next) {
@@ -64,10 +52,10 @@ function OmisellJobController() {
                 await Util.sleep(2);
                 page++;
             }
-            console.log(`Total orders saved: ${omisellOrderNos.length}`);
-            return { updatedTime, omisellOrderNos };
         },
-        fetchAndSaveOrderDetails: async (orderNos = []) => {
+        fetchAndSaveOrderDetails: async (updatedTime) => {
+            const orders = await Order.find({ updated_time: { $gte: updatedTime } }, { omisell_order_number: 1 }).lean();
+            const orderNos = orders.map(o => o.omisell_order_number);
             let processed = 0;
             let total = orderNos.length;
             console.log(`Fetching order details for ${total} orders`);
@@ -100,10 +88,6 @@ function OmisellJobController() {
             }
             console.log(`Total order details saved: ${processed}/${total}`);
         },
-        /**
-         * 
-         * @param {number} updatedFrom 
-         */
         fetchAndSaveOrderRevenues: async (updatedFrom) => {
             const pageSize = 100;
             let page = 1;
@@ -194,9 +178,11 @@ function OmisellJobController() {
     }
     return {
         jobSaveOrders: async () => {
-            const { updatedTime, omisellOrderNos } = await SELF.fetchAndSaveOrders();
-            await SELF.fetchAndSaveOrderDetails(omisellOrderNos);
-            // await SELF.fetchAndSaveOrderRevenues(updatedTime);
+            const newestOrder = await Order.findOne({}).sort({ updated_time: -1 }).lean();
+            const updatedTime = newestOrder?.updated_time ?? 1769878800;
+            await SELF.fetchAndSaveOrders(updatedTime);
+            await SELF.fetchAndSaveOrderDetails(updatedTime);
+            await SELF.fetchAndSaveOrderRevenues(updatedTime);
         },
         jobSavePickups: async () => {
             await SELF.fetchAndSavePickups();

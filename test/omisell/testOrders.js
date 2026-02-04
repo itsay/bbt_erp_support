@@ -32,5 +32,5 @@ mongoose.connect(
 
 async function test() {
     await OmisellJobController.jobSaveOrders()
-    await OmisellJobController.jobSavePickups()
+    // await OmisellJobController.jobSavePickups()
 }
