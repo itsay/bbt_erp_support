@@ -230,7 +230,6 @@ function MisaApiService() {
                 billing_account: mappedAccountName || invoice.fullname || '',
                 billing_contact: '',
                 billing_address: invoice.address || '',
-                billing_address: '',
                 billing_code: '',
                 billing_ward: '',
                 billing_district: '',
@@ -239,8 +238,8 @@ function MisaApiService() {
                 shipping_contact_name: receiver.fullname || '',
                 phone: receiver.phone || '',
                 shipping_address: receiver.address || '',
-                shipping_ward: receiver.district || '',
-                shipping_district: '',
+                shipping_ward: '',
+                shipping_district: receiver.district || '',
                 shipping_province: receiver.province || '',
                 shipping_country: 'Việt Nam',
                 discount_overall: discount_summary,
@@ -347,9 +346,10 @@ function MisaApiService() {
         test2: async () => {
             const token = await SELF.getToken()
             const [docs, pickups] = await Promise.all([
-                Order.find({ misa_status: { $ne: "SUCCESS" }, omisell_order_number: "OV2602033F39794B" }).sort({ created_time: 1 }).lean(),
+                Order.find({ misa_status: { $ne: "SUCCESS" }, omisell_order_number: "OV2602048CFCD207" }).sort({ created_time: 1 }).lean(),
                 PickupList.find().lean(),
             ]);
+
             let success = 0, fail = 0;
             for (let i = 0; i < docs.length; i++) {
                 const doc = docs[i];
