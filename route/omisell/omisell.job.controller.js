@@ -177,9 +177,13 @@ function OmisellJobController() {
         },
     }
     return {
-        jobSaveOrders: async () => {
-            const newestOrder = await Order.findOne({}).sort({ updated_time: -1 }).lean();
-            const updatedTime = newestOrder?.updated_time ?? 1769878800;
+        jobSaveOrders: async (_updatedTime) => {
+            let updatedTime = _updatedTime;
+            if (!updatedTime) {
+                const newestOrder = await Order.findOne({}).sort({ updated_time: -1 }).lean();
+                updatedTime = newestOrder?.updated_time;
+            }
+            else updatedTime = 1770224400
             await SELF.fetchAndSaveOrders(updatedTime);
             await SELF.fetchAndSaveOrderDetails(updatedTime);
             await SELF.fetchAndSaveOrderRevenues(updatedTime);
