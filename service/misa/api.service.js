@@ -210,6 +210,21 @@ function MisaApiService() {
             const shipping_amount_summary = sale_order_product_mappings.reduce((s, p) => s + p.amount, 0);
             const amount_summary = shipping_amount_summary
 
+            const decideWard = (receiver) => {
+                const districtLowerCased = receiver.district.toLowerCase()
+                if (!receiver.subdistrict_id && (districtLowerCased.includes('phường') || districtLowerCased.includes('xã'))) {
+                    return receiver.district
+                }
+                return ''
+            }
+
+            const decideDistrict = (receiver) => {
+                if (decideWard(receiver)) {
+                    return ''
+                }
+                return receiver.district
+            }
+
             return {
                 sale_order_no: src.order_number || null,
                 other_sys_order_code: src.omisell_order_number || null,
@@ -238,8 +253,8 @@ function MisaApiService() {
                 shipping_contact_name: receiver.fullname || '',
                 phone: receiver.phone || '',
                 shipping_address: receiver.address || '',
-                shipping_ward: '',
-                shipping_district: receiver.district || '',
+                shipping_ward: decideWard(receiver),
+                shipping_district: decideDistrict(receiver),
                 shipping_province: receiver.province || '',
                 shipping_country: 'Việt Nam',
                 discount_overall: discount_summary,
@@ -346,7 +361,7 @@ function MisaApiService() {
         test2: async () => {
             const token = await SELF.getToken()
             const [docs, pickups] = await Promise.all([
-                Order.find({ misa_status: { $ne: "SUCCESS" }, omisell_order_number: "OV2602048CFCD207" }).sort({ created_time: 1 }).lean(),
+                Order.find({ misa_status: { $ne: "SUCCESS" }, omisell_order_number: "OV260204CED75934" }).sort({ created_time: 1 }).lean(),
                 PickupList.find().lean(),
             ]);
 
