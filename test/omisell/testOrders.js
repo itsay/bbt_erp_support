@@ -34,7 +34,8 @@ mongoose.connect(
 
 async function test() {
     // await MisaApiService.test()
-    await OmisellJobController.jobSaveOrders()
+    await OmisellJobController.test()
+    await MisaApiService.test2()
 
     // await OmisellJobController.jobSavePickups()
 }

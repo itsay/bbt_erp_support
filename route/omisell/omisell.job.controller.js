@@ -183,13 +183,15 @@ function OmisellJobController() {
                 const newestOrder = await Order.findOne({}).sort({ updated_time: -1 }).lean();
                 updatedTime = newestOrder?.updated_time;
             }
-            else updatedTime = 1770224400
             await SELF.fetchAndSaveOrders(updatedTime);
             await SELF.fetchAndSaveOrderDetails(updatedTime);
             await SELF.fetchAndSaveOrderRevenues(updatedTime);
         },
         jobSavePickups: async () => {
             await SELF.fetchAndSavePickups();
+        },
+        test: async () => {
+            await SELF.fetchAndSaveOrderDetails(1770199200);
         }
     }
 }

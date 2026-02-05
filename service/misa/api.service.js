@@ -77,7 +77,7 @@ function MisaApiService() {
             if (!ts || ts <= 0) return null;
             return new Date(ts * 1000).toISOString();
         },
-        mapOmisellToCrmSaleOrder(src, pickups = []) {
+        mapOmisellToCrmSaleOrder: (src, pickups = []) => {
             const omisellNo = src.omisell_order_number;
             console.log('omisell_order_number:', omisellNo);
             const parcels = Array.isArray(src.parcels) ? src.parcels : [];
@@ -239,9 +239,9 @@ function MisaApiService() {
                 shipping_contact_name: receiver.fullname || '',
                 phone: receiver.phone || '',
                 shipping_address: receiver.address || '',
-                shipping_ward: '',
+                shipping_ward: receiver.district || '',
                 shipping_district: '',
-                shipping_province: '',
+                shipping_province: receiver.province || '',
                 shipping_country: 'Việt Nam',
                 discount_overall: discount_summary,
                 delivery_date: SELF.toIso(src.shipped_time || 0),
@@ -343,6 +343,53 @@ function MisaApiService() {
                 console.log(`[MisaApiService] - [createOrder] - fail: `, error.stack);
                 return Promise.reject(error);
             }
+        },
+        test2: async () => {
+            const token = await SELF.getToken()
+            const [docs, pickups] = await Promise.all([
+                Order.find({ misa_status: { $ne: "SUCCESS" }, omisell_order_number: "OV2602033F39794B" }).sort({ created_time: 1 }).lean(),
+                PickupList.find().lean(),
+            ]);
+            let success = 0, fail = 0;
+            for (let i = 0; i < docs.length; i++) {
+                const doc = docs[i];
+                const orderNo = doc.omisell_order_number || doc.order_number;
+                const sentAt = new Date();
+                await Order.updateOne(
+                    { _id: doc._id },
+                    { $set: { misa_status: 'PENDING', misa_sent_time: sentAt } }
+                );
+                const detailDoc = await OrderDetail.findOne({ omisell_order_number: orderNo });
+                if (!detailDoc) {
+                    console.log(`No detail found for order ${orderNo}`);
+                    continue;
+                }
+                const source = detailDoc || doc;
+                let crmOrder
+                try {
+                    crmOrder = SELF.mapOmisellToCrmSaleOrder(source, pickups);
+                    console.time(`Push ${orderNo}`);
+                    const misaId = await SELF.addCrmObjects('SaleOrders', [crmOrder], token, SELF.AMIS_CLIENT_ID, SELF.AMIS_CRM_URL);
+                    console.log(`Push SUCCESS | omisell_order_number=${orderNo} | misaId=${misaId}`);
+                    console.timeEnd(`Push ${orderNo}`);
+                    await Order.updateOne(
+                        { _id: doc._id },
+                        { $set: { misa_status: 'SUCCESS', misa_response: { misa_id: misaId }, misa_sent_time: sentAt, misa_body: crmOrder || '', misa_id: misaId } }
+                    );
+                    success++;
+                } catch (err) {
+                    console.error(`Push FAIL | omisell_order_number=${orderNo} | error=${String(err)}`);
+                    await Order.updateOne(
+                        { _id: doc._id },
+                        { $set: { misa_status: 'FAIL', misa_response: { error: JSON.stringify(err) }, misa_sent_time: sentAt, misa_body: crmOrder } }
+                    );
+                    fail++;
+                }
+                if ((i + 1) % 10 === 0) {
+                    console.log(`Pushed ${i + 1}/${docs.length} orders to MISA | success=${success} fail=${fail}`);
+                }
+            }
+            console.log(`Done pushing ${docs.length} orders | success=${success} fail=${fail}`);
         },
     }
 }
