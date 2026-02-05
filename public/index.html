@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>BiTrade Admin</title>
+  <title>BBT Admin</title>
   <link rel="shortcut icon" href="/img/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="x-ua-compatible" content="ie=edge" />
@@ -47,7 +47,7 @@
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
       <a href="#" class="brand-link">
-        <img src="/images/BiTrade_Logo.png" alt="BiTrade Admin" class="brand-logo">
+          <p class="text-bold">BBT Admin</p>
       </a>
       <br />
       <div class="sidebar" data-ng-controller="roleController" style="font-size: small">
@@ -63,7 +63,7 @@
               >
                   <i class="nav-icon fas fa-laptop-code text-blue-400"></i>
                   <p class="ml-2">
-                      Dashboard
+                      OMISELL
                       <i class="right fas fa-angle-down"></i>
                   </p>
               </a>
@@ -75,7 +75,7 @@
                       </a>
                   </li>
               </ul>
-          </li>
+            </li>
           </ul>
           <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false"
             data-ng-if="data.show">
@@ -88,7 +88,7 @@
               >
                   <i class="nav-icon fas fa-globe text-blue-400"></i>
                   <p class="ml-2">
-                      AUS
+                      MISA
                       <i class="right fas fa-angle-down"></i>
                   </p>
               </a>
@@ -107,6 +107,43 @@
                 </li>
               </ul>
           </li>
+          </ul>
+          <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false"
+              data-ng-if="data.show">
+              <li class="nav-item mb-1 has-treeview">
+                  <a
+                          href="#!/dashboard"
+                          class="nav-link rounded-md hover:bg-blue-700 transition-colors department-toggle"
+                          data-ng-click="clickDashboard()"
+                          onclick="toggleDepartment(event, 'dashboard'); return false;"
+                  >
+                      <i class="nav-icon fas fa-cogs text-blue-400"></i>
+                      <p class="ml-2">
+                          SETUP
+                          <i class="right fas fa-angle-down"></i>
+                      </p>
+                  </a>
+                  <ul class="pl-3 mt-1 space-y-1 department-submenu">
+                      <li class="text-gray-300">
+                          <a href="#!/setup/user" class="nav-link rounded-md hover:bg-gray-700 transition-colors flex items-center">
+                              <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 mr-3"></span>
+                              <p>User</p>
+                          </a>
+                      </li>
+                      <li class="text-gray-300">
+                          <a href="#!/setup/permission" class="nav-link rounded-md hover:bg-gray-700 transition-colors flex items-center">
+                              <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 mr-3"></span>
+                              <p>Nhóm quyền</p>
+                          </a>
+                      </li>
+                      <li class="text-gray-300">
+                          <a href="#!/setup/settings" class="nav-link rounded-md hover:bg-gray-700 transition-colors flex items-center">
+                              <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 mr-3"></span>
+                              <p>SETTINGS</p>
+                          </a>
+                      </li>
+                  </ul>
+              </li>
           </ul>
         </nav>
       </div>
@@ -147,6 +184,7 @@
   <script type="text/javascript" src="./js/select2.full.min.js"></script>
   <script type="text/javascript" src="./js/tempusdominus-bootstrap-4.min.js"></script>
   <script type="text/javascript" src="./AdminLTE/plugins/toastr/toastr.min.js"></script>
+  <script type="text/javascript" src="./js/controller/setup/userManagerController.js"></script>
 </body>
 
 </html>

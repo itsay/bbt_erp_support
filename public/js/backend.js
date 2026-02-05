@@ -1,11 +1,14 @@
-const Backend = angular.module('Backend', ['ngRoute', 'ngFileUpload', 'ngSanitize', 'angularjs-dropdown-multiselect']);
+const BBTApp = angular.module('Backend', ['ngRoute', 'ngFileUpload', 'ngSanitize', 'angularjs-dropdown-multiselect']);
 
-Backend.config(['$routeProvider',
+BBTApp.config(['$routeProvider',
     function ($routeProvider, $locationProvider) {
         $routeProvider
             .when('/welcome', {
                 templateUrl: '/view/welcome.html',
                 controller: 'welcomeCtrl'
+            }).when('/setup/user', {
+                templateUrl: '/view/setup/user-manager.html',
+                controller: 'userManagerCtrl',
             })
             .otherwise({
                 redirectTo: '/welcome'
@@ -35,7 +38,7 @@ Backend.config(['$routeProvider',
     },
 ]);
 
-Backend.controller("roleController", [
+BBTApp.controller("roleController", [
     "$scope",
     "$http",
     "$rootScope",
@@ -61,7 +64,7 @@ Backend.controller("roleController", [
         };
     },
 ]);
-Backend.controller("logoutController", [
+BBTApp.controller("logoutController", [
     "$scope",
     "$http",
     "$window",
@@ -73,7 +76,7 @@ Backend.controller("logoutController", [
         };
     },
 ]);
-Backend.controller("welcomeCtrl", [
+BBTApp.controller("welcomeCtrl", [
     "$scope",
     "$http",
     function ($scope, $http) {
