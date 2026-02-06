@@ -23,7 +23,6 @@ const Staff = mongoose.Schema(
 );
 
 const User = mongoose.Schema({
-    campaignId: { type: String },
     email: { type: String },
     group: { type: String }, // Nhóm quyền
     password: { type: String }

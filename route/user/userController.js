@@ -85,7 +85,7 @@ function UserController() {
     },
     edit: async (req, res) => {
         try {
-            const user = await User.findOneAndUpdate({_id: req.body._id}, req.body)
+            const user = await User.findOneAndUpdate({_id: req.body._id}, req.body, { new: true })
             res.json({ s: 200, data: user })
         } catch (error) {
             Logger.error(error)
