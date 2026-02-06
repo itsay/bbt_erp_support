@@ -22,7 +22,22 @@ const Staff = mongoose.Schema(
   { versionKey: false, timestamps: true, strict: false }
 );
 
+const User = mongoose.Schema({
+    campaignId: { type: String },
+    email: { type: String },
+    group: { type: String }, // Nhóm quyền
+    password: { type: String }
+}, { versionKey: false, timestamps: true })
+
+const Group = mongoose.Schema({
+    name: { type: String },
+    permissions: { type: Array },
+    users: { type: Array }, // Array of user _id strings
+})
+
 
 module.exports = {
   Staff: mongoose.model("staff", Staff),
+  User: mongoose.model('bbt_user', User),
+  Group: mongoose.model('bbt_group', Group),
 };

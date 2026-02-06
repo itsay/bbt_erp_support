@@ -69,9 +69,9 @@
                         return;
                     }
                     let email = $scope.user.email.trim();
-                    if (email.indexOf("@") === -1) {
-                        email += "@gmail.com";
-                    }
+                    // if (email.indexOf("@") === -1) {
+                    //     email += "@gmail.com";
+                    // }
                     $http
                         .post("/v1/user/login", {
                             user: { email: email, password: $scope.user.password },

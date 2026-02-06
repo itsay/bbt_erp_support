@@ -3,6 +3,7 @@ const Logger = require("./../util/logController").Logger;
 const path = require("path");
 const fs = require("fs");
 const { Staff } = require("./../../model/user");
+const {User} = require("../../model/user");
 
 /** @class UserController */
 function UserController() {
@@ -65,6 +66,38 @@ function UserController() {
         Logger.error(err);
         res.status(500).send("Internal Server Error");
       }
+    },
+    getUsers: async (req, res) => {
+        try {
+            const users = await User.find({}).lean()
+            res.json({ s: 200, data: users })
+        } catch (error) {
+            Logger.error(error)
+        }
+    },
+    add: async (req, res) => {
+        try {
+            const user = await User.create(req.body)
+            res.json({ s: 200, data: user })
+        } catch (error) {
+            Logger.error(error)
+        }
+    },
+    edit: async (req, res) => {
+        try {
+            const user = await User.findOneAndUpdate({_id: req.body._id}, req.body)
+            res.json({ s: 200, data: user })
+        } catch (error) {
+            Logger.error(error)
+        }
+    },
+    delete: async (req, res) => {
+        try {
+            const user = await User.findOneAndDelete( { _id: req.params.id } )
+            res.json({ s: 200, data: user })
+        } catch (error) {
+            Logger.error(error)
+        }
     },
   };
 }

@@ -15,5 +15,9 @@ router.get('/user/logout', LoginController.doLogout)
 router.get("/user/role", LoginController.getRole);
 
 /**API PRODUCT */
+router.get('/users', UserController.getUsers)
+router.post('/user', UserController.add)
+router.put('/user/:id', UserController.edit)
+router.delete('/user/:id', UserController.delete)
 
 module.exports = router;

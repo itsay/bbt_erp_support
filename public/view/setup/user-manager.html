@@ -1,0 +1,298 @@
+
+<style>
+    .item-right {
+        display: flex;
+        justify-content: end;
+        align-items: end;
+    }
+    .important {
+        color: red;
+    }
+    .btn-right {
+        float: inline-end;
+    }
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+    }
+    .select2-container--default
+    .select2-selection--single
+    .select2-selection__arrow {
+        height: 38px !important;
+    }
+    .padding-bottom-5 {
+        padding-bottom: 5px;
+    }
+    .css-qr {
+        border-radius: 5px;
+        height: 150px;
+        box-shadow: 0 0 1px rgba(0, 0, 0, 0.125), 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    .center {
+        display: flex;
+        justify-content: center;
+    }
+</style>
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Danh sách Users</h1>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <!--                <div class="col-sm-3">-->
+                            <!--                  <div class="form-group">-->
+                            <!--                    <label>Chọn Campaign</label>-->
+                            <!--                    <select-->
+                            <!--                      class="form-control"-->
+                            <!--                      ng-model="data.campaignIdProcessing"-->
+                            <!--                      ng-change="changeCampaign()"-->
+                            <!--                      ng-options="item for item in data.campaigns"-->
+                            <!--                    >-->
+                            <!--                      <option ng-repeat="campaign in data.campaigns">-->
+                            <!--                        {{campaign}}-->
+                            <!--                      </option>-->
+                            <!--                    </select>-->
+                            <!--                  </div>-->
+                            <!--                </div>-->
+                            <div class="col-sm-5">
+                                <!-- <div class="form-group">
+                                  <label> Tìm kiếm </label>
+                                  <input
+                                    type="text"
+                                    name="table_search"
+                                    ng-model="data.keySearch"
+                                    ng-change="searchUser()"
+                                    class="form-control float-right ng-pristine ng-untouched ng-valid ng-empty"
+                                    placeholder="Tìm kiếm"
+                                  />
+                                </div> -->
+                            </div>
+                            <div class="col-sm-7 item-right">
+                                <div class="form-group">
+                                    <button
+                                            type="button"
+                                            class="btn btn-success"
+                                            ng-click="showModalAdd()"
+                                    >
+                                        <i class="fa fa-plus"></i> Thêm user mới
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body" style="overflow-x: auto">
+                        <div id="example2_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <table
+                                            id="example2"
+                                            class="table table-bordered table-hover dataTable dtr-inline"
+                                            aria-describedby="example2_info"
+                                    >
+                                        <thead>
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Email</th>
+                                            <th>Password</th>
+                                            <th>Action</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr ng-repeat="user in data.users">
+                                            <td>{{$index+1}}</td>
+                                            <td>{{user.email}}</td>
+                                            <td>{{user.password}}</td>
+                                            <td style="width: 200px;">
+                                                <button
+                                                        class="btn btn-success btn-sm"
+                                                        ng-click="showModalEdit(user)"
+                                                >
+                                                    <i class="fa fa-confirm"></i> Edit
+                                                </button>
+                                                <button
+                                                        type="button"
+                                                        class="btn btn-danger btn-sm"
+                                                        ng-click="showModalRemove(user._id)"
+                                                >
+                                                    <i class="fa fa-trash"></i> Xóa
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<div
+        class="modal fade show"
+        id="modal-add"
+        data-backdrop="static"
+        role="dialog"
+        aria-labelledby="staticBackdropLabel"
+        aria-hidden="true"
+        data-keyboard="false"
+>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Thêm user mới</h4>
+                <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                >
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>User name</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    ng-model="dataProcessing.email"
+                            />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    ng-model="dataProcessing.password"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-default" data-dismiss="modal">
+                    Đóng
+                </button>
+                <button
+                        type="button"
+                        class="btn btn-primary"
+                        ng-click="add()"
+                >
+                    Xác nhận
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div
+        class="modal fade show"
+        id="modal-edit"
+        data-backdrop="static"
+        role="dialog"
+        aria-labelledby="staticBackdropLabel"
+        aria-hidden="true"
+        data-keyboard="false"
+>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Chỉnh sửa thông tin user</h4>
+                <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                >
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    ng-model="dataProcessing.email"
+                            />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    ng-model="dataProcessing.password"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-default" data-dismiss="modal">
+                    Đóng
+                </button>
+                <button
+                        type="button"
+                        class="btn btn-primary"
+                        ng-click="edit()"
+                >
+                    Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div
+        class="modal fade show"
+        id="modal-confirm-remove"
+        data-backdrop="static"
+        role="dialog"
+        aria-labelledby="staticBackdropLabel"
+        aria-hidden="true"
+        data-keyboard="false"
+>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Xác nhận</h4>
+                <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                >
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div>Xác nhận xóa User</div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-default" data-dismiss="modal">
+                    Đóng
+                </button>
+                <button type="button" class="btn btn-danger" ng-click="remove()">
+                    Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
