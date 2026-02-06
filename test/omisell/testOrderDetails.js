@@ -1,7 +1,7 @@
 require("dotenv").config();
+const mongoose = require("mongoose");
 const OmisellJobController = require("../../route/omisell/omisell.job.controller");
 const OmisellApiService = require("../../service/omisell/api.service");
-const mongoose = require("mongoose");
 const { Order } = require('../../model/omisell')
 const MisaApiService = require("../../service/misa/api.service");
 
@@ -31,6 +31,9 @@ mongoose.connect(
     }
 )
 
+async function RegetOrderDetail() {
+    const orders = await
+}
 
 
 async function test() {

@@ -192,7 +192,7 @@ function OmisellJobController() {
         },
         test: async () => {
             await SELF.fetchAndSaveOrders(1769878800);
-        }
+        },
     }
 }
 
