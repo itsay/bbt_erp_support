@@ -57,7 +57,7 @@ function OmisellJobController() {
             const orders = await Order.find({ updated_time: { $gte: updatedTime } }, { omisell_order_number: 1 }).lean();
             const orderNos = orders.map(o => o.omisell_order_number);
             let processed = 0;
-            let total = orderNos.length;
+            const total = orderNos.length;
             console.log(`Fetching order details for ${total} orders`);
             const chunk = (arr, size) => {
                 const out = [];
@@ -185,13 +185,13 @@ function OmisellJobController() {
             }
             await SELF.fetchAndSaveOrders(updatedTime);
             await SELF.fetchAndSaveOrderDetails(updatedTime);
-            await SELF.fetchAndSaveOrderRevenues(updatedTime);
+            // await SELF.fetchAndSaveOrderRevenues(updatedTime);
         },
         jobSavePickups: async () => {
             await SELF.fetchAndSavePickups();
         },
         test: async () => {
-            await SELF.fetchAndSaveOrderDetails(1770199200);
+            await SELF.fetchAndSaveOrders(1769878800);
         }
     }
 }
