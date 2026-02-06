@@ -95,7 +95,6 @@ function OmisellApiService() {
                 const base = `${SELF.config.baseUrl}/api/v2/public/order/list`;
                 const qs = SELF.buildQuery(params);
                 const url = qs ? `${base}?${qs}` : base;
-                console.log('url', url)
                 return await SELF.requestOmiWithAuth(url, { method: 'GET' });
             } catch (error) {
                 console.error('Get orders failed:', error.message);
