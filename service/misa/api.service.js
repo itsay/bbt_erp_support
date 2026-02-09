@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { Order, OrderDetail, PickupList } = require('../../model/omisell')
 const { MisaAccount, MisaWarehouse, MisaEnum } = require('../../model/misa-config')
 const fs = require('fs');
@@ -636,6 +637,35 @@ function MisaApiService() {
             }
             console.log(`Done pushing ${docs.length} orders | success=${success} fail=${fail}`);
         },
+        addWarehouse: async ({ warehouse_code, warehouse_name }) => {
+            await SELF.loadConfig();
+            const token = await SELF.getToken();
+
+            const newWarehouse = {
+                act_database_id: "",
+                async_id: crypto.randomUUID(),
+                description: `Thêm mới kho hàng ${warehouse_name}`,
+                inactive: false,
+                stock_code: warehouse_code,
+                stock_name: warehouse_name
+            };
+
+            try {
+                const result = await SELF.addCrmObjects({
+                    select: 'Stocks',
+                    items: [newWarehouse],
+                    token,
+                    clientId: SELF.AMIS_CLIENT_ID,
+                    crmUrl: SELF.AMIS_CRM_URL
+                });
+                console.log(`[addWarehouse] SUCCESS | result=${JSON.stringify(result)}`);
+                return result;
+            } catch (err) {
+                console.error(`[addWarehouse] FAIL | error=${JSON.stringify(err)}`);
+                throw err;
+            }
+        },
+
         createOrder: async () => {
             try {
                 await SELF.addCrmObjects({ select: 'SaleOrders', items, token, clientId, crmUrl })

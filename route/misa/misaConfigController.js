@@ -1,6 +1,7 @@
 "use strict";
 const Logger = require("./../util/logController").Logger;
 const { MisaAccount, MisaWarehouse, MisaEnum } = require("../../model/misa-config");
+const MisaApiService = require("../../service/misa/api.service");
 
 function MisaConfigController() {
     return {
@@ -54,8 +55,12 @@ function MisaConfigController() {
         },
         addWarehouse: async (req, res) => {
             try {
-                const doc = await MisaWarehouse.create(req.body);
-                res.json({ s: 200, data: doc });
+                const { warehouse_code, warehouse_name } = req.body;
+                const [doc, misaResult] = await Promise.all([
+                    MisaWarehouse.create(req.body),
+                    MisaApiService.addWarehouse({ warehouse_code, warehouse_name })
+                ]);
+                res.json({ s: 200, data: doc, misa: misaResult });
             } catch (error) {
                 Logger.error(error);
                 res.status(500).json({ s: 500, message: error.code === 11000 ? "Mã kho đã tồn tại" : "Internal Server Error" });
