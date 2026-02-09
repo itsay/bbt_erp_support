@@ -2,13 +2,19 @@ const { WebhookEvent } = require('../../model/omisell')
 const StatusWebhookEnum = require('../../common/enums/status-webhook.eum')
 
 function WebhookController() {
+    const SELF = {
+        handleSyncOrder: () => {
+            
+        }
+    }
     return {
         receiveWebhook: async (req, res) => {
             console.log(`[receiveWebhook] - payload: ${JSON.stringify(req.body)}`);
             WebhookEvent.create({
                 ...req.body,
+                ...req.body.data,
                 receivedAt: new Date(),
-                status: StatusWebhookEnum.PENDING,
+                handle_status: StatusWebhookEnum.PENDING,
             }).catch((err) => {
                 console.log(`[receiveWebhook] - saveTracking - fail: `, err.stack);
             })
