@@ -9,6 +9,9 @@ BBTApp.config(['$routeProvider',
             }).when('/setup/user', {
                 templateUrl: '/view/setup/user-manager.html',
                 controller: 'userManagerCtrl',
+            }).when('/setup/misa-config', {
+                templateUrl: '/view/setup/misa-config.html',
+                controller: 'misaConfigCtrl',
             })
             .otherwise({
                 redirectTo: '/welcome'

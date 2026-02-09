@@ -1,0 +1,536 @@
+<style>
+    .misa-config .nav-tabs { border-bottom: 2px solid #dee2e6; }
+    .misa-config .nav-tabs .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 10px 20px;
+        border-radius: 0;
+        transition: all 0.2s;
+    }
+    .misa-config .nav-tabs .nav-link:hover { color: #007bff; background: #f0f6ff; }
+    .misa-config .nav-tabs .nav-link.active {
+        color: #007bff;
+        border-bottom: 2px solid #007bff;
+        background: transparent;
+        font-weight: 600;
+    }
+    .misa-config .table-modern {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+    }
+    .misa-config .table-modern thead th {
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+        padding: 12px 16px;
+        white-space: nowrap;
+    }
+    .misa-config .table-modern tbody td {
+        padding: 10px 16px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+        font-size: 14px;
+    }
+    .misa-config .table-modern tbody tr:hover { background: #f8f9fa; }
+    .misa-config .badge-platform {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    .misa-config .badge-shopee { background: #fff0ed; color: #ee4d2d; }
+    .misa-config .badge-tiktok { background: #f0f0f0; color: #161823; }
+    .misa-config .badge-lazada { background: #e8f0fe; color: #0f146d; }
+    .misa-config .badge-retail { background: #e8f8ef; color: #28a745; }
+    .misa-config .badge-default { background: #f0f0f0; color: #495057; }
+    .misa-config .badge-bool-yes { background: #d4edda; color: #155724; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+    .misa-config .badge-bool-no { background: #f8d7da; color: #721c24; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+    .misa-config .badge-enum {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    .misa-config .badge-pay_status { background: #fff3cd; color: #856404; }
+    .misa-config .badge-status { background: #d1ecf1; color: #0c5460; }
+    .misa-config .badge-sale_order_type { background: #e2d9f3; color: #563d7c; }
+    .misa-config .btn-action {
+        border: none;
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .misa-config .btn-edit { background: #e8f0fe; color: #1a73e8; }
+    .misa-config .btn-edit:hover { background: #c5dcfa; }
+    .misa-config .btn-delete { background: #fce8e6; color: #d93025; }
+    .misa-config .btn-delete:hover { background: #f5c6c2; }
+    .misa-config .btn-add-new {
+        background: #1a73e8;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .misa-config .btn-add-new:hover { background: #1557b0; color: #fff; }
+    .misa-config .card { border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-radius: 10px; }
+    .misa-config .card-header { background: #fff; border-bottom: 1px solid #f0f0f0; border-radius: 10px 10px 0 0 !important; }
+    .misa-config .tab-content { padding-top: 0; }
+    .misa-config .search-box {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 14px;
+        width: 280px;
+        transition: border-color 0.2s;
+    }
+    .misa-config .search-box:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 3px rgba(26,115,232,0.1); }
+    .misa-config .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #adb5bd;
+    }
+    .misa-config .empty-state i { font-size: 48px; margin-bottom: 12px; }
+    .misa-config .stat-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 16px 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .misa-config .stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+    .misa-config .stat-number { font-size: 22px; font-weight: 700; color: #212529; line-height: 1; }
+    .misa-config .stat-label { font-size: 12px; color: #6c757d; margin-top: 2px; }
+    .misa-config .modal-content { border: none; border-radius: 12px; }
+    .misa-config .modal-header { border-bottom: 1px solid #f0f0f0; padding: 16px 24px; }
+    .misa-config .modal-body { padding: 20px 24px; }
+    .misa-config .modal-footer { border-top: 1px solid #f0f0f0; padding: 12px 24px; }
+    .misa-config .form-control {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 8px 14px;
+        font-size: 14px;
+    }
+    .misa-config .form-control:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.1); }
+    .misa-config label { font-weight: 500; font-size: 13px; color: #495057; margin-bottom: 4px; }
+    .misa-config .warehouse-code { font-family: 'Courier New', monospace; font-weight: 600; color: #495057; }
+</style>
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 style="font-weight:700; font-size:24px;">Cấu hình MISA</h1>
+                <p style="color:#6c757d; font-size:14px; margin:0;">Quản lý tài khoản, kho hàng, trạng thái & loại đơn hàng</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content misa-config">
+    <div class="container-fluid">
+        <!-- Stats row -->
+        <div class="row mb-3">
+            <div class="col-md-3 col-sm-6 mb-2">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#e8f0fe; color:#1a73e8;">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number">{{data.accounts.length}}</div>
+                        <div class="stat-label">Tài khoản</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-2">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#e8f8ef; color:#28a745;">
+                        <i class="fas fa-warehouse"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number">{{data.warehouses.length}}</div>
+                        <div class="stat-label">Kho hàng</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-2">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#fff3cd; color:#856404;">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number">{{data.enums.length}}</div>
+                        <div class="stat-label">Danh mục</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main card with tabs -->
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="configTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-toggle="tab" data-target="#tab-accounts" href="javascript:void(0)">
+                            <i class="fas fa-store mr-1"></i> Tài khoản
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" data-target="#tab-warehouses" href="javascript:void(0)">
+                            <i class="fas fa-warehouse mr-1"></i> Kho hàng
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" data-target="#tab-enums" href="javascript:void(0)">
+                            <i class="fas fa-tags mr-1"></i> Danh mục
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body" style="padding: 20px;">
+                <div class="tab-content">
+                    <!-- ==================== TAB: Accounts ==================== -->
+                    <div class="tab-pane fade show active" id="tab-accounts">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <input type="text" class="search-box" placeholder="Tìm theo tên, mã, platform..."
+                                   ng-model="filter.accounts" />
+                            <button class="btn-add-new" ng-click="showModal('account', 'add')">
+                                <i class="fas fa-plus mr-1"></i> Thêm tài khoản
+                            </button>
+                        </div>
+                        <div style="overflow-x:auto;">
+                            <table class="table-modern">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px">#</th>
+                                        <th>Platform</th>
+                                        <th>Shop ID</th>
+                                        <th>Tên tài khoản</th>
+                                        <th>Mã tài khoản</th>
+                                        <th style="text-align:center">Phí ship</th>
+                                        <th style="width:120px;text-align:center">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="item in filteredAccounts = (data.accounts | filter:filter.accounts)">
+                                        <td style="color:#adb5bd">{{$index + 1}}</td>
+                                        <td>
+                                            <span class="badge-platform"
+                                                  ng-class="getPlatformClass(item.platform)">
+                                                {{item.platform}}
+                                            </span>
+                                        </td>
+                                        <td><strong>{{item.shop_id}}</strong></td>
+                                        <td>{{item.account_name}}</td>
+                                        <td><code>{{item.account_number}}</code></td>
+                                        <td style="text-align:center">
+                                            <span ng-if="item.allowFeeShip" class="badge-bool-yes">
+                                                <i class="fas fa-check"></i> Cho phep
+                                            </span>
+                                            <span ng-if="!item.allowFeeShip" class="badge-bool-no">
+                                                <i class="fas fa-times"></i> Khong
+                                            </span>
+                                        </td>
+                                        <td style="text-align:center">
+                                            <button class="btn-action btn-edit mr-1" ng-click="showModal('account', 'edit', item)" title="Sua">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            <button class="btn-action btn-delete" ng-click="showModalDelete('account', item)" title="Xoa">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr ng-if="filteredAccounts.length === 0">
+                                        <td colspan="7">
+                                            <div class="empty-state">
+                                                <i class="fas fa-inbox"></i>
+                                                <p>Khong co du lieu</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ==================== TAB: Warehouses ==================== -->
+                    <div class="tab-pane fade" id="tab-warehouses">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <input type="text" class="search-box" placeholder="Tìm theo mã kho, tên kho..."
+                                   ng-model="filter.warehouses" />
+                            <button class="btn-add-new" ng-click="showModal('warehouse', 'add')">
+                                <i class="fas fa-plus mr-1"></i> Thêm kho
+                            </button>
+                        </div>
+                        <div style="overflow-x:auto;">
+                            <table class="table-modern">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px">#</th>
+                                        <th style="width:160px">Mã kho</th>
+                                        <th>Tên kho</th>
+                                        <th style="width:120px;text-align:center">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="item in filteredWarehouses = (data.warehouses | filter:filter.warehouses)">
+                                        <td style="color:#adb5bd">{{$index + 1}}</td>
+                                        <td><span class="warehouse-code">{{item.warehouse_code}}</span></td>
+                                        <td>{{item.warehouse_name}}</td>
+                                        <td style="text-align:center">
+                                            <button class="btn-action btn-edit mr-1" ng-click="showModal('warehouse', 'edit', item)" title="Sua">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            <button class="btn-action btn-delete" ng-click="showModalDelete('warehouse', item)" title="Xoa">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr ng-if="filteredWarehouses.length === 0">
+                                        <td colspan="4">
+                                            <div class="empty-state">
+                                                <i class="fas fa-inbox"></i>
+                                                <p>Khong co du lieu</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ==================== TAB: Enums ==================== -->
+                    <div class="tab-pane fade" id="tab-enums">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center" style="gap:10px;">
+                                <input type="text" class="search-box" placeholder="Tìm theo key, label..."
+                                       ng-model="filter.enums" />
+                                <select class="form-control" style="width:200px; border-radius:8px; font-size:14px;"
+                                        ng-model="filter.enumCategory">
+                                    <option value="">-- Tất cả danh mục --</option>
+                                    <option ng-repeat="cat in getCategories()" value="{{cat}}">{{cat}}</option>
+                                </select>
+                            </div>
+                            <button class="btn-add-new" ng-click="showModal('enum', 'add')">
+                                <i class="fas fa-plus mr-1"></i> Thêm mục
+                            </button>
+                        </div>
+                        <div style="overflow-x:auto;">
+                            <table class="table-modern">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px">#</th>
+                                        <th style="width:200px">Danh mục</th>
+                                        <th>Key</th>
+                                        <th>Giá trị</th>
+                                        <th style="width:120px;text-align:center">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="item in filteredEnums = (getFilteredEnums())">
+                                        <td style="color:#adb5bd">{{$index + 1}}</td>
+                                        <td>
+                                            <span class="badge-enum" ng-class="'badge-' + item.category">
+                                                {{getCategoryLabel(item.category)}}
+                                            </span>
+                                        </td>
+                                        <td><code>{{item.key}}</code></td>
+                                        <td>{{item.label}}</td>
+                                        <td style="text-align:center">
+                                            <button class="btn-action btn-edit mr-1" ng-click="showModal('enum', 'edit', item)" title="Sua">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            <button class="btn-action btn-delete" ng-click="showModalDelete('enum', item)" title="Xoa">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr ng-if="filteredEnums.length === 0">
+                                        <td colspan="5">
+                                            <div class="empty-state">
+                                                <i class="fas fa-inbox"></i>
+                                                <p>Khong co du lieu</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== MODAL: Account ==================== -->
+<div class="modal fade misa-config" id="modal-account" data-backdrop="static" role="dialog" aria-hidden="true" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="font-weight:600;">
+                    <i class="fas fa-store mr-2" style="color:#1a73e8"></i>
+                    {{modalMode === 'add' ? 'Thêm tài khoản' : 'Chỉnh sửa tài khoản'}}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Platform <span style="color:red">*</span></label>
+                            <input type="text" class="form-control" ng-model="form.platform" placeholder="VD: Shopee_v2, Tiktok, Lazada, Retail..." />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Shop ID <span style="color:red">*</span></label>
+                            <input type="number" class="form-control" ng-model="form.shop_id" placeholder="VD: 22931" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Tên tài khoản <span style="color:red">*</span></label>
+                            <input type="text" class="form-control" ng-model="form.account_name" placeholder="VD: Khách hàng Shopee" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Mã tài khoản <span style="color:red">*</span></label>
+                            <input type="text" class="form-control" ng-model="form.account_number" placeholder="VD: KH10665" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Cho phép tính phí ship</label>
+                            <div>
+                                <label style="font-weight:400; cursor:pointer;">
+                                    <input type="checkbox" ng-model="form.allowFeeShip" style="margin-right:6px;" />
+                                    Cho phép
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn-add-new" ng-click="save('account')">
+                    <i class="fas fa-check mr-1"></i> {{modalMode === 'add' ? 'Thêm' : 'Lưu'}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL: Warehouse ==================== -->
+<div class="modal fade misa-config" id="modal-warehouse" data-backdrop="static" role="dialog" aria-hidden="true" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="font-weight:600;">
+                    <i class="fas fa-warehouse mr-2" style="color:#28a745"></i>
+                    {{modalMode === 'add' ? 'Thêm kho' : 'Chỉnh sửa kho'}}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Mã kho <span style="color:red">*</span></label>
+                    <input type="text" class="form-control" ng-model="form.warehouse_code" placeholder="VD: KHO25" />
+                </div>
+                <div class="form-group">
+                    <label>Tên kho <span style="color:red">*</span></label>
+                    <input type="text" class="form-control" ng-model="form.warehouse_name" placeholder="VD: Kho Boxme Hà Nội" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn-add-new" ng-click="save('warehouse')">
+                    <i class="fas fa-check mr-1"></i> {{modalMode === 'add' ? 'Thêm' : 'Lưu'}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL: Enum ==================== -->
+<div class="modal fade misa-config" id="modal-enum" data-backdrop="static" role="dialog" aria-hidden="true" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="font-weight:600;">
+                    <i class="fas fa-tags mr-2" style="color:#856404"></i>
+                    {{modalMode === 'add' ? 'Thêm mục' : 'Chỉnh sửa mục'}}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Danh mục <span style="color:red">*</span></label>
+                    <select class="form-control" ng-model="form.category">
+                        <option value="">-- Chọn danh mục --</option>
+                        <option ng-repeat="cat in getCategories()" value="{{cat}}">{{cat}}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Key <span style="color:red">*</span></label>
+                    <input type="text" class="form-control" ng-model="form.key" placeholder="VD: DA_THANH_TOAN" />
+                </div>
+                <div class="form-group">
+                    <label>Giá trị <span style="color:red">*</span></label>
+                    <input type="text" class="form-control" ng-model="form.label" placeholder="VD: Đã thanh toán" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn-add-new" ng-click="save('enum')">
+                    <i class="fas fa-check mr-1"></i> {{modalMode === 'add' ? 'Thêm' : 'Lưu'}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL: Confirm Delete ==================== -->
+<div class="modal fade misa-config" id="modal-misa-delete" data-backdrop="static" role="dialog" aria-hidden="true" data-keyboard="false">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="font-weight:600;">Xác nhận xóa</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <p style="margin:0;">Bạn có chắc muốn xóa mục này không?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" ng-click="confirmDelete()">
+                    <i class="fas fa-trash-alt mr-1"></i> Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

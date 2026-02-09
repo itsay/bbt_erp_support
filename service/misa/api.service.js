@@ -1,4 +1,5 @@
 const { Order, OrderDetail, PickupList } = require('../../model/omisell')
+const { MisaAccount, MisaWarehouse, MisaEnum } = require('../../model/misa-config')
 const fs = require('fs');
 const OmisellApiService = require('../omisell/api.service');
 
@@ -9,57 +10,40 @@ function MisaApiService() {
         AMIS_CRM_URL: process.env.AMIS_CRM_URL,
         AMIS_CLIENT_ID: process.env.AMIS_CLIENT_ID,
         AMIS_CLIENT_SECRET: process.env.AMIS_CLIENT_SECRET,
-        accountTable: [
-            { platform: 'Retail', shop_id: 29291, account_name: 'Khách hàng ECOM', account_number: 'KH10819', allowFeeShip: true },
-            { platform: 'Shopee_v2', shop_id: 22931, account_name: 'Khách hàng Shopee', account_number: 'KH10665', allowFeeShip: false },
-            { platform: 'Tiktok', shop_id: 22411, account_name: 'Khách hàng TikTok Shop', account_number: 'KH10799', allowFeeShip: true },
-            { platform: 'Lazada', shop_id: 22853, account_name: 'Khách hàng Lazada', account_number: 'KH10798', allowFeeShip: true },
-            { platform: 'Shopee_v2', shop_id: 33991, account_name: 'Khách hàng Shopee - Osaki', account_number: 'KH10663', allowFeeShip: false },
-            { platform: 'Shopee_v2', shop_id: 33937, account_name: 'Khách hàng Shopee (Shop Vệ Tinh 1)', account_number: 'KH10876', allowFeeShip: false },
-            { platform: 'Tiktok', shop_id: 34712, account_name: 'Khách hàng TikTok Shop - Osaki', account_number: 'KH11276', allowFeeShip: true },
-            { platform: 'Shopee_v2', shop_id: 35431, account_name: 'Khách hàng Shopee (Shop Vệ Tinh 2)', account_number: 'KH11472', allowFeeShip: false },
-        ],
-        warehouses: [
-            { warehouse_code: 'KHO25', warehouse_name: 'Kho Boxme Hà Nội' },
-            { warehouse_code: 'KHO24', warehouse_name: 'Boxme Tân Tạo HCM' },
-            { warehouse_code: 'KHO04', warehouse_name: 'KHO TP NT ÂU CƠ' },
-            { warehouse_code: 'KHO08', warehouse_name: 'Kho hàng khuyến mãi' },
-            { warehouse_code: 'KHO09', warehouse_name: 'Kho chờ sản xuất' },
-            { warehouse_code: 'KHO10', warehouse_name: 'Kho chờ giao hàng BBT' },
-            { warehouse_code: 'KHO11', warehouse_name: 'Kho nhà phân phối' },
-            { warehouse_code: 'KHO20', warehouse_name: 'Kho TP Hàng Hóa' },
-            { warehouse_code: 'KHO21', warehouse_name: 'Kho hàng mẫu' },
-            { warehouse_code: 'KHO29', warehouse_name: 'KHO TP ĐÀ NẴNG' },
-            { warehouse_code: 'KHO30', warehouse_name: 'KHO TP HẬU GIANG' },
-            { warehouse_code: 'KHO31', warehouse_name: 'KHO THÀNH PHẨM CHÂU ĐỐC' },
-            { warehouse_code: 'KHO35', warehouse_name: 'KHO TP ÂU CƠ' },
-            { warehouse_code: 'KHO36', warehouse_name: 'Kho chờ giao hàng Âu Cơ' },
-            { warehouse_code: 'KHO37', warehouse_name: 'Kho hàng tặng Khách Hàng' },
-            { warehouse_code: 'KHO38', warehouse_name: 'KHO TP SHOWROOM ÂU CƠ' },
-            { warehouse_code: 'KHO39', warehouse_name: 'Kho NVL Khách Cấp - Gia Công' },
-            { warehouse_code: 'KHO40', warehouse_name: 'KHO TP AMAZON' }
-        ],
-        pay_status: {
-            CHUA_THANH_TOAN: 'Chưa thanh toán',
-            DA_THANH_TOAN: 'Đã thanh toán',
-            DA_THANH_TOAN_MOI_PART: 'Đã thanh toán một phần',
-        },
-        status: {
-            CHUA_THUC_HIEN: 'Chưa thực hiện',
-            DANG_THUC_HIEN: 'Đang thực hiện',
-            DA_THUC_HIEN: 'Đã thực hiện',
-            DA_HUY_BO: 'Đã hủy bỏ',
-            DA_GIAO: 'Đã giao đủ hàng',
-        },
-        sale_order_type: {
-            normal: 'Đơn hàng Omisell',
-            sample: 'Mẫu thử',
-            BAN_MOI: 'Bán mới',
-            NANG_CAP: 'Nâng cấp',
-            GIA_HAN: 'Gia hạn/Cập nhật',
-            DICH_VU_DAO_TAO: 'Dịch vụ đào tạo',
-            DICH_VU_TU_VAN_TRIEN_KHAI: 'Dịch vụ tư vấn triển khai',
-            DICH_VU_KHAC: 'Dịch vụ khác',
+        accountTable: [],
+        warehouses: [],
+        pay_status: {},
+        status: {},
+        sale_order_type: {},
+        /**
+         * Load cấu hình từ database. Gọi trước khi xử lý đơn hàng.
+         */
+        loadConfig: async () => {
+            const [accounts, warehouses, enums] = await Promise.all([
+                MisaAccount.find({}).lean(),
+                MisaWarehouse.find({}).lean(),
+                MisaEnum.find({}).lean(),
+            ]);
+            SELF.accountTable = accounts.map(a => ({
+                platform: a.platform,
+                shop_id: a.shop_id,
+                account_name: a.account_name,
+                account_number: a.account_number,
+                allowFeeShip: a.allowFeeShip,
+            }));
+            SELF.warehouses = warehouses.map(w => ({
+                warehouse_code: w.warehouse_code,
+                warehouse_name: w.warehouse_name,
+            }));
+            SELF.pay_status = {};
+            SELF.status = {};
+            SELF.sale_order_type = {};
+            for (const e of enums) {
+                if (e.category === 'pay_status') SELF.pay_status[e.key] = e.label;
+                else if (e.category === 'status') SELF.status[e.key] = e.label;
+                else if (e.category === 'sale_order_type') SELF.sale_order_type[e.key] = e.label;
+            }
+            console.log(`[MisaApiService] Config loaded: ${accounts.length} accounts, ${warehouses.length} warehouses, ${enums.length} enums`);
         },
         mapShippingAddress: (shipping) => {
             const normalizeKey = (s) => {
@@ -584,7 +568,9 @@ function MisaApiService() {
         }
     }
     return {
+        loadConfig: SELF.loadConfig,
         test: async () => {
+            await SELF.loadConfig();
             const token = await SELF.getToken()
             const [docs, pickups] = await Promise.all([
                 Order.find({ misa_status: { $ne: "SUCCESS" } }).sort({ created_time: 1 }).lean(),
