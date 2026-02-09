@@ -566,7 +566,38 @@ function MisaApiService() {
                 console.log(`[MisaApiService] - [addCrmObjects] - fail: `, error.stack);
                 return Promise.reject(error);
             }
-        }
+        },
+        updateCrmObjects: async ({ select, items, token, clientId, crmUrl = SELF.AMIS_CRM_URL }) => {
+            try {
+                console.log(`[MisaApiService] - [updateCrmObjects] - select=${select} - token=${token}`);
+                const base = SELF.normalizeUrl(crmUrl);
+                if (!base) {
+                    console.log(`CRM update error: missing AMIS_CRM_URL`);
+                    return Promise.reject(new Error('CRM update error: missing AMIS_CRM_URL'));
+                }
+
+                const url = `${base}/${select}`;
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'Clientid': clientId,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(Array.isArray(items) ? items : [items])
+                });
+                const data = await response.json();
+                console.log(`[MisaApiService] - [updateCrmObjects] - data=${JSON.stringify(data)}`);
+                if (!data?.success) {
+                    return Promise.reject(data);
+                }
+                return Promise.resolve(data?.results?.[0]?.data);
+            } catch (error) {
+                console.log(`[MisaApiService] - [updateCrmObjects] - fail: `, error.stack);
+                return Promise.reject(error);
+            }
+        },
     }
     return {
         loadConfig: SELF.loadConfig,
@@ -671,6 +702,181 @@ function MisaApiService() {
                 await SELF.addCrmObjects({ select: 'SaleOrders', items, token, clientId, crmUrl })
             } catch (error) {
                 console.log(`[MisaApiService] - [createOrder] - fail: `, error.stack);
+                return Promise.reject(error);
+            }
+        },
+        testUpdateOrder: async () => {
+            try {
+                await SELF.loadConfig();
+                const token = await SELF.getToken()
+                const crmOrder = {
+                    "id": "51049",
+                    "sale_order_no": "2602060HAQXEQK",
+                    "other_sys_order_code": "OV2602064DE279CB",
+                    "description": null,
+                    "status": "Giao hàng thành công",
+                    "shipping_code": "1",
+                    "shipping_amount_summary": 7,
+                    "delivery_status": "Đang vận chuyển",
+                    "list_product": [
+                    "21-TT046",
+                    "25-TT008",
+                    "25-TT001"
+                    ],
+                    "amount_summary": 7,
+                    "discount_summary": 0,
+                    "pay_status": "Đã thanh toán",
+                    "sale_order_amount": 222780.0024,
+                    "total_summary": 222780.0024,
+                    "sale_order_date": "2026-02-05",
+                    "paid_date": "2026-02-05",
+                    "billing_account": "KH10665",
+                    "billing_contact": "",
+                    "billing_address": "",
+                    "billing_code": "",
+                    "billing_ward": "",
+                    "billing_district": "",
+                    "billing_province": "",
+                    "billing_country": "Việt Nam",
+                    "shipping_contact_name": "T******g",
+                    "phone": "+840000099",
+                    "shipping_address": "******7, Lò Đúc, Phường Đống Mác, Quận Hai Bà Trưng, Hà Nội",
+                    "shipping_ward": "Phường Bách Khoa",
+                    "shipping_district": "Quận Hai Bà Trưng",
+                    "shipping_province": "Hà Nội",
+                    "shipping_country": "Việt Nam",
+                    "discount_overall": 0,
+                    "delivery_date": "2026-02-06T04:52:26.000Z",
+                    "form_layout": "Đơn hàng Omisell",
+                    "sale_order_type": "Đơn hàng Omisell",
+                    "sale_order_product_mappings": [
+                    {
+                        "product_code": "21-TT046",
+                        "to_currency_oc": 206277.77777777775,
+                        "total_oc": 222779.99999999997,
+                        "description": "Bông làm sạch da tròn 3D Calla 200 miếng/gói",
+                        "amount": 3,
+                        "price": 68759.26,
+                        "usage_unit": "",
+                        "discount": 0,
+                        "discount_percent": 0,
+                        "ratio": 1,
+                        "tax": 16502.2224,
+                        "operator": "Nhân",
+                        "to_currency_oc_after_discount": 206277.77777777775,
+                        "usage_unit_amount": 3,
+                        "usage_unit_price": 68759.26,
+                        "is_promotion": false,
+                        "description_product": "Bông làm sạch da tròn 3D Calla 200 miếng/gói",
+                        "batch_number": "",
+                        "expire_date": null,
+                        "exist_amount": 0,
+                        "discount_oc": 0,
+                        "tax_oc": 16502.22222222222,
+                        "to_currency": 206277.77999999997,
+                        "total": 222780.00239999997,
+                        "shipping_amount": 3,
+                        "price_after_tax": 74260,
+                        "sort_order": 1,
+                        "height": 0,
+                        "width": 0,
+                        "length": 0,
+                        "radius": 0,
+                        "mass": 0,
+                        "to_currency_after_discount": 206277.77999999997,
+                        "quantity_ordered": 3,
+                        "discounted_price": 74260,
+                        "discounted_price_before_tax": 68759.26,
+                        "tax_percent": "8%",
+                        "stock_name": "KHO24"
+                    },
+                    {
+                        "product_code": "25-TT008",
+                        "to_currency_oc": 0,
+                        "total_oc": 0,
+                        "description": "Bông tẩy trang Calla Dạng túi 10 miếng/gói",
+                        "amount": 2,
+                        "price": 0,
+                        "usage_unit": "",
+                        "discount": 0,
+                        "discount_percent": 0,
+                        "ratio": 1,
+                        "tax": 0,
+                        "operator": "Nhân",
+                        "to_currency_oc_after_discount": 0,
+                        "usage_unit_amount": 2,
+                        "usage_unit_price": 0,
+                        "is_promotion": true,
+                        "description_product": "Bông tẩy trang Calla Dạng túi 10 miếng/gói",
+                        "batch_number": "",
+                        "expire_date": null,
+                        "exist_amount": 0,
+                        "discount_oc": 0,
+                        "tax_oc": 0,
+                        "to_currency": 0,
+                        "total": 0,
+                        "shipping_amount": 2,
+                        "price_after_tax": 0,
+                        "sort_order": 2,
+                        "height": 0,
+                        "width": 0,
+                        "length": 0,
+                        "radius": 0,
+                        "mass": 0,
+                        "to_currency_after_discount": 0,
+                        "quantity_ordered": 2,
+                        "discounted_price": 0,
+                        "discounted_price_before_tax": 0,
+                        "tax_percent": "0%",
+                        "stock_name": "KHO24"
+                    },
+                    {
+                        "product_code": "25-TT001",
+                        "to_currency_oc": 0,
+                        "total_oc": 0,
+                        "description": "Bông làm sạch da Tròn 3D (30 miếng/gói)",
+                        "amount": 2,
+                        "price": 0,
+                        "usage_unit": "",
+                        "discount": 0,
+                        "discount_percent": 0,
+                        "ratio": 1,
+                        "tax": 0,
+                        "operator": "Nhân",
+                        "to_currency_oc_after_discount": 0,
+                        "usage_unit_amount": 2,
+                        "usage_unit_price": 0,
+                        "is_promotion": true,
+                        "description_product": "Bông làm sạch da Tròn 3D (30 miếng/gói)",
+                        "batch_number": "",
+                        "expire_date": null,
+                        "exist_amount": 0,
+                        "discount_oc": 0,
+                        "tax_oc": 0,
+                        "to_currency": 0,
+                        "total": 0,
+                        "shipping_amount": 2,
+                        "price_after_tax": 0,
+                        "sort_order": 3,
+                        "height": 0,
+                        "width": 0,
+                        "length": 0,
+                        "radius": 0,
+                        "mass": 0,
+                        "to_currency_after_discount": 0,
+                        "quantity_ordered": 2,
+                        "discounted_price": 0,
+                        "discounted_price_before_tax": 0,
+                        "tax_percent": "8%",
+                        "stock_name": "KHO24"
+                    }
+                    ],
+                    "account_name": "KH10665",
+                    "sale_order_name": "2602060HAQXEQK"
+                }
+                await SELF.updateCrmObjects({ select: 'SaleOrders', items: [crmOrder], token, clientId: SELF.AMIS_CLIENT_ID, crmUrl: SELF.AMIS_CRM_URL })
+            } catch (error) {
+                console.log(`[MisaApiService] - [testUpdateOrder] - fail: `, error.stack);
                 return Promise.reject(error);
             }
         },

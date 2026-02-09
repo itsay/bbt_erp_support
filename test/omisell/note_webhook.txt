@@ -1,0 +1,30 @@
+Đơn hàng:
+created > Push when the order has been successfully created
+processing > Push when the order has been created for shipment
+update_lot or update_serial or update_lot/serial > Push when order has change Lot/Serial number during packing
+ready_to_ship > Push when the order is ready to ship
+shipped >  Push when the order has been handed over to the shipping carrier
+completed > Push when the order is completed
+returned > Push when order status is Returned
+cancelled > Push when order status is Cancelled
+reconciled > Push when order status is Reconciled
+return_receive > Push when the order is return receive at the warehouse
+exceptions > Push when the order is Exceptions
+courier_lost_items > Push when the order is Courier lost items
+
+Vận đơn:
+created > Push when the shipment has been successfully created
+ready_to_ship > Push when shipment status is RTS
+shipped > Push when shipment status is Shipped
+failed_delivery_attempt > Push when shipment status is Failed Delivery Attempt
+returned > Push when shipment status is Returned
+cancelled > Push when shipment status is Cancelled
+exceptions > Push when shipment status is Exceptions
+
+Return order:
+requested > Push when the return order is requested
+accepted > Push when the return order is accepted
+processing > Push when the return order is processing
+returned > Push when the return order is refund paid
+closed > Push when the return order is closed
+cancelled > Push when the return order is cancelled 
