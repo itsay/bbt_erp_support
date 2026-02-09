@@ -14,7 +14,7 @@ function WebhookController() {
                 ...req.body,
                 ...req.body.data,
                 receivedAt: new Date(),
-                status: StatusWebhookEnum.PENDING,
+                handle_status: StatusWebhookEnum.PENDING,
             }).catch((err) => {
                 console.log(`[receiveWebhook] - saveTracking - fail: `, err.stack);
             })
