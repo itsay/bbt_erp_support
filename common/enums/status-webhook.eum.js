@@ -1,5 +1,5 @@
 module.exports = {
-    PENDING: 'pending',
-    SUCCESS: 'success',
-    FAILED: 'failed',
+    PENDING: 'PENDING',
+    SUCCESS: 'SUCCESS',
+    FAILED: 'FAILED',
 }

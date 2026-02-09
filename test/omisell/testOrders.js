@@ -34,9 +34,18 @@ mongoose.connect(
 
 
 async function test() {
-    await MisaApiService.testUpdateOrder()
+    // await MisaApiService.testUpdateOrder()
 
     // await OmisellJobController.jobSaveOrders(1769878800)
     // const res = await OmisellApiService.getOrderDetail('OV2602051DB22804')
     // console.log(res)
+    const data = await OmisellApiService.getOrders({
+        updated_from: 1769878800,
+        updated_to: 1770621126,
+        page_size: 100,
+        page: 1
+    })
+    console.log(data)
+
+
 }

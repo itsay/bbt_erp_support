@@ -1,8 +1,9 @@
 const crypto = require('crypto');
-const { Order, OrderDetail, PickupList } = require('../../model/omisell')
+const { Order, OrderDetail, PickupList, } = require('../../model/omisell')
 const { MisaAccount, MisaWarehouse, MisaEnum } = require('../../model/misa-config')
 const fs = require('fs');
 const OmisellApiService = require('../omisell/api.service');
+const StatusWebhook = require('../../common/enums/status-webhook.eum');
 
 
 function MisaApiService() {
@@ -360,8 +361,9 @@ function MisaApiService() {
             return new Date(ts * 1000).toISOString();
         },
         mapOmisellToCrmSaleOrder: (src, pickups = []) => {
+            const clog = (msg, ...args) => console.log(`[MisaApiService.mapOmisellToCrmSaleOrder] ${msg}`, ...args);
             const omisellNo = src.omisell_order_number;
-            console.log('omisell_order_number:', omisellNo);
+            clog('omisell_order_number:', omisellNo);
             const parcels = Array.isArray(src.parcels) ? src.parcels : [];
             const firstParcel = parcels[0] || {};
             const inventoryItems = parcels.flatMap(p => Array.isArray(p.inventory_items) ? p.inventory_items : []);
@@ -966,12 +968,15 @@ function MisaApiService() {
         },
         /**
          * Xử lý đơn hàng mới theo data từ webhook
-         * @param {Object} orderData Data đơn hàng lấy từ webhook
+         * @param {Object} webhookData Data webhook
          */
-        processNewOrderFromWebhook: async (orderData) => {
+        processNewOrderFromWebhook: async (webhookData) => {
+            const clog = (msg, ...args) => console.log(`[MisaApiService.processNewOrderFromWebhook] ${msg}`, ...args);
+            const orderData = webhookData.data;
+
             // Validate input
             if (!orderData || !orderData.omisell_order_number) {
-                console.error('[processNewOrderFromWebhook] Invalid orderData: missing omisell_order_number');
+                clog('Invalid orderData: missing omisell_order_number');
                 return;
             }
 
@@ -980,11 +985,14 @@ function MisaApiService() {
             let crmOrder;
 
             try {
-                await SELF.loadConfig();
-                const token = await SELF.getToken();
-                let orderDb = await Order.findOne({ omisell_order_number: omisell_order_number }).lean();
+                const [_, token, orderDb, misaEnums] = await Promise.all([
+                    SELF.loadConfig(),
+                    SELF.getToken(),
+                    Order.findOne({ omisell_order_number: omisell_order_number }).lean(),
+                    MisaEnum.find({ category: { $in: ['delivery_status', 'status'] } }).lean()
+                ])
 
-                // Không có sẵn đơn hàng thì lấy từ database
+                // Không có sẵn đơn hàng thì get lại từ API
                 if (!orderDb) {
                     await Order.updateOne(
                         { omisell_order_number: omisell_order_number },
@@ -1000,17 +1008,29 @@ function MisaApiService() {
                             { upsert: true }
                         );
                     }
-                    orderDb = orderData;
+
+                }
+                const orderDetailDb = await OrderDetail.findOne({ omisell_order_number: omisell_order_number }).lean();
+                if (!orderDetailDb) {
+                    clog(`Cannot get order detail for order: ${omisell_order_number}`);
+                    return
                 }
 
                 // Cập nhật trạng thái xử lý misa của đơn hàng
                 await Order.updateOne(
                     { omisell_order_number: omisell_order_number },
-                    { $set: { misa_status: 'PENDING', misa_sent_time: sentAt } }
+                    { $set: { misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt } }
                 );
 
-                crmOrder = SELF.mapOmisellToCrmSaleOrder(orderDb, SELF.PICKUP_LIST);
-                console.time(`Push ${omisell_order_number}`);
+                crmOrder = SELF.mapOmisellToCrmSaleOrder(orderDetailDb, SELF.PICKUP_LIST);
+
+                const statusType = webhookData.event.split('.')[0];
+
+                // map trạng thái cho misa
+                crmOrder.status = statusType === 'order' ? misaEnums.find(e => e.category === 'status' && e.key == orderData?.status_id)?.label : crmOrder.status
+                crmOrder.delivery_status = statusType === 'shipment' ? misaEnums.find(e => e.category === 'delivery_status' && e.key == orderData?.status_id)?.label : crmOrder.delivery_status
+
+                clog(`Pushing order: ${omisell_order_number}`);
                 const misaId = await SELF.addCrmObjects({
                     select: 'SaleOrders',
                     items: [crmOrder],
@@ -1018,29 +1038,30 @@ function MisaApiService() {
                     clientId: SELF.AMIS_CLIENT_ID,
                     crmUrl: SELF.AMIS_CRM_URL
                 });
-                console.log(`Push SUCCESS | omisell_order_number=${omisell_order_number} | misaId=${misaId}`);
-                console.timeEnd(`Push ${omisell_order_number}`);
+                clog(`Push SUCCESS | omisell_order_number=${omisell_order_number} | misaId=${misaId}`);
+
                 await Order.updateOne(
                     { omisell_order_number },
                     { $set: { misa_status: 'SUCCESS', misa_response: { misa_id: misaId }, misa_sent_time: sentAt, misa_body: crmOrder || '', misa_id: misaId } }
                 );
             } catch (err) {
-                console.error(`Push FAIL | omisell_order_number=${omisell_order_number} | error=${err?.message || String(err)}`);
-                console.error(`Error stack: ${err?.stack}`);
+                clog(`Push FAIL | omisell_order_number=${omisell_order_number} | error=${JSON.stringify(err.stack)}`);
                 await Order.updateOne(
                     { omisell_order_number },
                     {
                         $set: {
-                            misa_status: 'FAIL',
+                            misa_status: StatusWebhook.FAILED,
                             misa_response: { error: err?.message || err?.stack || JSON.stringify(err) },
                             misa_sent_time: sentAt,
                             misa_body: crmOrder || ''
                         }
                     }
-                ).catch(e => console.error('Failed to update FAIL status:', e));
+                ).catch(e => clog('Failed to update FAIL status:', e));
             }
         }
     }
 }
+
+
 
 module.exports = MisaApiService()

@@ -1,10 +1,11 @@
 const { WebhookEvent } = require('../../model/omisell')
 const StatusWebhookEnum = require('../../common/enums/status-webhook.eum')
+const MisaApiService = require('../../service/misa/api.service')
 
 function WebhookController() {
     const SELF = {
         handleSyncOrder: () => {
-            
+
         }
     }
     return {
@@ -18,6 +19,7 @@ function WebhookController() {
             }).catch((err) => {
                 console.log(`[receiveWebhook] - saveTracking - fail: `, err.stack);
             })
+            MisaApiService.processNewOrderFromWebhook(req.body)
             return res.json({ msg: "Webhook received" });
         }
     }
