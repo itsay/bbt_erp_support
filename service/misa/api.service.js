@@ -363,7 +363,7 @@ function MisaApiService() {
         mapOmisellToCrmSaleOrder: (src, pickups = []) => {
             const clog = (msg, ...args) => console.log(`[MisaApiService.mapOmisellToCrmSaleOrder] ${msg}`, ...args);
             const omisellNo = src.omisell_order_number;
-            clog('omisell_order_number:', omisellNo);
+            console.log('[mapOmisellToCrmSaleOrder] - omisell_order_number:', omisellNo);
             const parcels = Array.isArray(src.parcels) ? src.parcels : [];
             const firstParcel = parcels[0] || {};
             const inventoryItems = parcels.flatMap(p => Array.isArray(p.inventory_items) ? p.inventory_items : []);
@@ -500,14 +500,14 @@ function MisaApiService() {
                 sale_order_no: src.order_number || null,
                 other_sys_order_code: src.omisell_order_number || null,
                 description: src.order_note || null,
-                status: src?.status_name || SELF.status.CHUA_THUC_HIEN,
+                status: src?.status_name || '',
                 shipping_code: firstParcel.package_number || receiver.zip_code || '',
                 shipping_amount_summary,
                 delivery_status: firstParcel.shipment_status_name || String(firstParcel.shipment_status || ''),
                 list_product,
                 amount_summary,
                 discount_summary,
-                pay_status: paymentInfo[0].transaction_status_name || SELF.pay_status.CHUA_THANH_TOAN,
+                pay_status: paymentInfo[0].transaction_status_name || '',
                 sale_order_amount: Number(sale_order_amount.toFixed(4)),
                 total_summary: Number(sale_order_amount.toFixed(4)),
                 sale_order_date,
