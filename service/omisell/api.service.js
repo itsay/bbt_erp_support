@@ -1,3 +1,5 @@
+const Util = require('../../route/util/util')
+
 function OmisellApiService() {
     const SELF = {
         config: {
@@ -106,11 +108,19 @@ function OmisellApiService() {
          * @returns {Promise<Object>} Order detail
          */
         getOrderDetail: async (omisellOrderNumber) => {
-            try {
-                const url = `${SELF.config.baseUrl}/api/v2/public/order/${encodeURIComponent(omisellOrderNumber)}`;
-                return await SELF.requestOmiWithAuth(url, { method: 'GET', redirect: 'follow' });
-            } catch (error) {
-                console.error('Get order detail failed:', error.message);
+            const maxRetries = 3;
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    const url = `${SELF.config.baseUrl}/api/v2/public/order/${encodeURIComponent(omisellOrderNumber)}`;
+                    return await SELF.requestOmiWithAuth(url, { method: 'GET', redirect: 'follow' });
+                } catch (error) {
+                    console.error(`Get order detail failed (attempt ${attempt}/${maxRetries}):`, error.message);
+                    if (attempt < maxRetries && error?.data?.retry_after) {
+                        await Util.sleep(error.data.retry_after);
+                    } else {
+                        throw error;
+                    }
+                }
             }
         },
         /**
@@ -150,7 +160,7 @@ function OmisellApiService() {
             const qs = SELF.buildQuery(params);
             const url = qs ? `${base}?${qs}` : base;
             return await SELF.requestOmiWithAuth(url, { method: 'GET', headers });
-        }
+        },
     }
 }
 

@@ -11,6 +11,7 @@ function MisaApiService() {
         AMIS_CRM_URL: process.env.AMIS_CRM_URL,
         AMIS_CLIENT_ID: process.env.AMIS_CLIENT_ID,
         AMIS_CLIENT_SECRET: process.env.AMIS_CLIENT_SECRET,
+        PICKUP_LIST: [],
         accountTable: [],
         warehouses: [],
         pay_status: {},
@@ -45,6 +46,7 @@ function MisaApiService() {
                 else if (e.category === 'sale_order_type') SELF.sale_order_type[e.key] = e.label;
             }
             console.log(`[MisaApiService] Config loaded: ${accounts.length} accounts, ${warehouses.length} warehouses, ${enums.length} enums`);
+            SELF.PICKUP_LIST = await PickupList.find().lean()
         },
         mapShippingAddress: (shipping) => {
             const normalizeKey = (s) => {
@@ -801,9 +803,9 @@ function MisaApiService() {
                     "shipping_amount_summary": 7,
                     "delivery_status": "Đang vận chuyển",
                     "list_product": [
-                    "21-TT046",
-                    "25-TT008",
-                    "25-TT001"
+                        "21-TT046",
+                        "25-TT008",
+                        "25-TT001"
                     ],
                     "amount_summary": 7,
                     "discount_summary": 0,
@@ -832,126 +834,126 @@ function MisaApiService() {
                     "form_layout": "Đơn hàng Omisell",
                     "sale_order_type": "Đơn hàng Omisell",
                     "sale_order_product_mappings": [
-                    {
-                        "product_code": "21-TT046",
-                        "to_currency_oc": 206277.77777777775,
-                        "total_oc": 222779.99999999997,
-                        "description": "Bông làm sạch da tròn 3D Calla 200 miếng/gói",
-                        "amount": 3,
-                        "price": 68759.26,
-                        "usage_unit": "",
-                        "discount": 0,
-                        "discount_percent": 0,
-                        "ratio": 1,
-                        "tax": 16502.2224,
-                        "operator": "Nhân",
-                        "to_currency_oc_after_discount": 206277.77777777775,
-                        "usage_unit_amount": 3,
-                        "usage_unit_price": 68759.26,
-                        "is_promotion": false,
-                        "description_product": "Bông làm sạch da tròn 3D Calla 200 miếng/gói",
-                        "batch_number": "",
-                        "expire_date": null,
-                        "exist_amount": 0,
-                        "discount_oc": 0,
-                        "tax_oc": 16502.22222222222,
-                        "to_currency": 206277.77999999997,
-                        "total": 222780.00239999997,
-                        "shipping_amount": 3,
-                        "price_after_tax": 74260,
-                        "sort_order": 1,
-                        "height": 0,
-                        "width": 0,
-                        "length": 0,
-                        "radius": 0,
-                        "mass": 0,
-                        "to_currency_after_discount": 206277.77999999997,
-                        "quantity_ordered": 3,
-                        "discounted_price": 74260,
-                        "discounted_price_before_tax": 68759.26,
-                        "tax_percent": "8%",
-                        "stock_name": "KHO24"
-                    },
-                    {
-                        "product_code": "25-TT008",
-                        "to_currency_oc": 0,
-                        "total_oc": 0,
-                        "description": "Bông tẩy trang Calla Dạng túi 10 miếng/gói",
-                        "amount": 2,
-                        "price": 0,
-                        "usage_unit": "",
-                        "discount": 0,
-                        "discount_percent": 0,
-                        "ratio": 1,
-                        "tax": 0,
-                        "operator": "Nhân",
-                        "to_currency_oc_after_discount": 0,
-                        "usage_unit_amount": 2,
-                        "usage_unit_price": 0,
-                        "is_promotion": true,
-                        "description_product": "Bông tẩy trang Calla Dạng túi 10 miếng/gói",
-                        "batch_number": "",
-                        "expire_date": null,
-                        "exist_amount": 0,
-                        "discount_oc": 0,
-                        "tax_oc": 0,
-                        "to_currency": 0,
-                        "total": 0,
-                        "shipping_amount": 2,
-                        "price_after_tax": 0,
-                        "sort_order": 2,
-                        "height": 0,
-                        "width": 0,
-                        "length": 0,
-                        "radius": 0,
-                        "mass": 0,
-                        "to_currency_after_discount": 0,
-                        "quantity_ordered": 2,
-                        "discounted_price": 0,
-                        "discounted_price_before_tax": 0,
-                        "tax_percent": "0%",
-                        "stock_name": "KHO24"
-                    },
-                    {
-                        "product_code": "25-TT001",
-                        "to_currency_oc": 0,
-                        "total_oc": 0,
-                        "description": "Bông làm sạch da Tròn 3D (30 miếng/gói)",
-                        "amount": 2,
-                        "price": 0,
-                        "usage_unit": "",
-                        "discount": 0,
-                        "discount_percent": 0,
-                        "ratio": 1,
-                        "tax": 0,
-                        "operator": "Nhân",
-                        "to_currency_oc_after_discount": 0,
-                        "usage_unit_amount": 2,
-                        "usage_unit_price": 0,
-                        "is_promotion": true,
-                        "description_product": "Bông làm sạch da Tròn 3D (30 miếng/gói)",
-                        "batch_number": "",
-                        "expire_date": null,
-                        "exist_amount": 0,
-                        "discount_oc": 0,
-                        "tax_oc": 0,
-                        "to_currency": 0,
-                        "total": 0,
-                        "shipping_amount": 2,
-                        "price_after_tax": 0,
-                        "sort_order": 3,
-                        "height": 0,
-                        "width": 0,
-                        "length": 0,
-                        "radius": 0,
-                        "mass": 0,
-                        "to_currency_after_discount": 0,
-                        "quantity_ordered": 2,
-                        "discounted_price": 0,
-                        "discounted_price_before_tax": 0,
-                        "tax_percent": "8%",
-                        "stock_name": "KHO24"
-                    }
+                        {
+                            "product_code": "21-TT046",
+                            "to_currency_oc": 206277.77777777775,
+                            "total_oc": 222779.99999999997,
+                            "description": "Bông làm sạch da tròn 3D Calla 200 miếng/gói",
+                            "amount": 3,
+                            "price": 68759.26,
+                            "usage_unit": "",
+                            "discount": 0,
+                            "discount_percent": 0,
+                            "ratio": 1,
+                            "tax": 16502.2224,
+                            "operator": "Nhân",
+                            "to_currency_oc_after_discount": 206277.77777777775,
+                            "usage_unit_amount": 3,
+                            "usage_unit_price": 68759.26,
+                            "is_promotion": false,
+                            "description_product": "Bông làm sạch da tròn 3D Calla 200 miếng/gói",
+                            "batch_number": "",
+                            "expire_date": null,
+                            "exist_amount": 0,
+                            "discount_oc": 0,
+                            "tax_oc": 16502.22222222222,
+                            "to_currency": 206277.77999999997,
+                            "total": 222780.00239999997,
+                            "shipping_amount": 3,
+                            "price_after_tax": 74260,
+                            "sort_order": 1,
+                            "height": 0,
+                            "width": 0,
+                            "length": 0,
+                            "radius": 0,
+                            "mass": 0,
+                            "to_currency_after_discount": 206277.77999999997,
+                            "quantity_ordered": 3,
+                            "discounted_price": 74260,
+                            "discounted_price_before_tax": 68759.26,
+                            "tax_percent": "8%",
+                            "stock_name": "KHO24"
+                        },
+                        {
+                            "product_code": "25-TT008",
+                            "to_currency_oc": 0,
+                            "total_oc": 0,
+                            "description": "Bông tẩy trang Calla Dạng túi 10 miếng/gói",
+                            "amount": 2,
+                            "price": 0,
+                            "usage_unit": "",
+                            "discount": 0,
+                            "discount_percent": 0,
+                            "ratio": 1,
+                            "tax": 0,
+                            "operator": "Nhân",
+                            "to_currency_oc_after_discount": 0,
+                            "usage_unit_amount": 2,
+                            "usage_unit_price": 0,
+                            "is_promotion": true,
+                            "description_product": "Bông tẩy trang Calla Dạng túi 10 miếng/gói",
+                            "batch_number": "",
+                            "expire_date": null,
+                            "exist_amount": 0,
+                            "discount_oc": 0,
+                            "tax_oc": 0,
+                            "to_currency": 0,
+                            "total": 0,
+                            "shipping_amount": 2,
+                            "price_after_tax": 0,
+                            "sort_order": 2,
+                            "height": 0,
+                            "width": 0,
+                            "length": 0,
+                            "radius": 0,
+                            "mass": 0,
+                            "to_currency_after_discount": 0,
+                            "quantity_ordered": 2,
+                            "discounted_price": 0,
+                            "discounted_price_before_tax": 0,
+                            "tax_percent": "0%",
+                            "stock_name": "KHO24"
+                        },
+                        {
+                            "product_code": "25-TT001",
+                            "to_currency_oc": 0,
+                            "total_oc": 0,
+                            "description": "Bông làm sạch da Tròn 3D (30 miếng/gói)",
+                            "amount": 2,
+                            "price": 0,
+                            "usage_unit": "",
+                            "discount": 0,
+                            "discount_percent": 0,
+                            "ratio": 1,
+                            "tax": 0,
+                            "operator": "Nhân",
+                            "to_currency_oc_after_discount": 0,
+                            "usage_unit_amount": 2,
+                            "usage_unit_price": 0,
+                            "is_promotion": true,
+                            "description_product": "Bông làm sạch da Tròn 3D (30 miếng/gói)",
+                            "batch_number": "",
+                            "expire_date": null,
+                            "exist_amount": 0,
+                            "discount_oc": 0,
+                            "tax_oc": 0,
+                            "to_currency": 0,
+                            "total": 0,
+                            "shipping_amount": 2,
+                            "price_after_tax": 0,
+                            "sort_order": 3,
+                            "height": 0,
+                            "width": 0,
+                            "length": 0,
+                            "radius": 0,
+                            "mass": 0,
+                            "to_currency_after_discount": 0,
+                            "quantity_ordered": 2,
+                            "discounted_price": 0,
+                            "discounted_price_before_tax": 0,
+                            "tax_percent": "8%",
+                            "stock_name": "KHO24"
+                        }
                     ],
                     "account_name": "KH10665",
                     "sale_order_name": "2602060HAQXEQK"
@@ -962,6 +964,82 @@ function MisaApiService() {
                 return Promise.reject(error);
             }
         },
+        /**
+         * Xử lý đơn hàng mới theo data từ webhook
+         * @param {Object} orderData Data đơn hàng lấy từ webhook
+         */
+        processNewOrderFromWebhook: async (orderData) => {
+            // Validate input
+            if (!orderData || !orderData.omisell_order_number) {
+                console.error('[processNewOrderFromWebhook] Invalid orderData: missing omisell_order_number');
+                return;
+            }
+
+            const omisell_order_number = orderData.omisell_order_number;
+            const sentAt = new Date();
+            let crmOrder;
+
+            try {
+                await SELF.loadConfig();
+                const token = await SELF.getToken();
+                let orderDb = await Order.findOne({ omisell_order_number: omisell_order_number }).lean();
+
+                // Không có sẵn đơn hàng thì lấy từ database
+                if (!orderDb) {
+                    await Order.updateOne(
+                        { omisell_order_number: omisell_order_number },
+                        { $set: orderData },
+                        { upsert: true }
+                    );
+
+                    const orderDetailData = await OmisellApiService.getOrderDetail(omisell_order_number);
+                    if (orderDetailData?.data) {
+                        await OrderDetail.updateOne(
+                            { omisell_order_number: omisell_order_number },
+                            { $set: orderDetailData.data },
+                            { upsert: true }
+                        );
+                    }
+                    orderDb = orderData;
+                }
+
+                // Cập nhật trạng thái xử lý misa của đơn hàng
+                await Order.updateOne(
+                    { omisell_order_number: omisell_order_number },
+                    { $set: { misa_status: 'PENDING', misa_sent_time: sentAt } }
+                );
+
+                crmOrder = SELF.mapOmisellToCrmSaleOrder(orderDb, SELF.PICKUP_LIST);
+                console.time(`Push ${omisell_order_number}`);
+                const misaId = await SELF.addCrmObjects({
+                    select: 'SaleOrders',
+                    items: [crmOrder],
+                    token,
+                    clientId: SELF.AMIS_CLIENT_ID,
+                    crmUrl: SELF.AMIS_CRM_URL
+                });
+                console.log(`Push SUCCESS | omisell_order_number=${omisell_order_number} | misaId=${misaId}`);
+                console.timeEnd(`Push ${omisell_order_number}`);
+                await Order.updateOne(
+                    { omisell_order_number },
+                    { $set: { misa_status: 'SUCCESS', misa_response: { misa_id: misaId }, misa_sent_time: sentAt, misa_body: crmOrder || '', misa_id: misaId } }
+                );
+            } catch (err) {
+                console.error(`Push FAIL | omisell_order_number=${omisell_order_number} | error=${err?.message || String(err)}`);
+                console.error(`Error stack: ${err?.stack}`);
+                await Order.updateOne(
+                    { omisell_order_number },
+                    {
+                        $set: {
+                            misa_status: 'FAIL',
+                            misa_response: { error: err?.message || err?.stack || JSON.stringify(err) },
+                            misa_sent_time: sentAt,
+                            misa_body: crmOrder || ''
+                        }
+                    }
+                ).catch(e => console.error('Failed to update FAIL status:', e));
+            }
+        }
     }
 }
 
