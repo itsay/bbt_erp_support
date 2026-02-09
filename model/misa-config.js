@@ -20,9 +20,12 @@ MisaAccount.index({ platform: 1, shop_id: 1 }, { unique: true });
  * (warehouses trong api.service.js)
  */
 const MisaWarehouse = mongoose.Schema({
+    async_id: { type: String },
     warehouse_code: { type: String, required: true, unique: true },
     warehouse_name: { type: String, required: true },
 }, { versionKey: false, timestamps: true });
+
+MisaWarehouse.index({ async_id: 1 }, { unique: true, sparse: true });
 
 /**
  * MisaEnum - Quản lý các danh mục enum (pay_status, status, sale_order_type)

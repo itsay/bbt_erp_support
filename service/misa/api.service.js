@@ -598,6 +598,37 @@ function MisaApiService() {
                 return Promise.reject(error);
             }
         },
+        deleteCrmObjects: async ({ select, items, token, clientId, crmUrl = SELF.AMIS_CRM_URL }) => {
+            try {
+                console.log(`[MisaApiService] - [deleteCrmObjects] - select=${select} - token=${token}`);
+                const base = SELF.normalizeUrl(crmUrl);
+                if (!base) {
+                    console.log(`CRM delete error: missing AMIS_CRM_URL`);
+                    return Promise.reject(new Error('CRM delete error: missing AMIS_CRM_URL'));
+                }
+
+                const url = `${base}/${select}`;
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'Clientid': clientId,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(Array.isArray(items) ? items : [items])
+                });
+                const data = await response.json();
+                console.log(`[MisaApiService] - [deleteCrmObjects] - data=${JSON.stringify(data)}`);
+                if (!data?.success) {
+                    return Promise.reject(data);
+                }
+                return Promise.resolve(data?.results?.[0]?.data);
+            } catch (error) {
+                console.log(`[MisaApiService] - [deleteCrmObjects] - fail: `, error.stack);
+                return Promise.reject(error);
+            }
+        },
     }
     return {
         loadConfig: SELF.loadConfig,
@@ -668,13 +699,13 @@ function MisaApiService() {
             }
             console.log(`Done pushing ${docs.length} orders | success=${success} fail=${fail}`);
         },
-        addWarehouse: async ({ warehouse_code, warehouse_name }) => {
+        addWarehouse: async ({ warehouse_code, warehouse_name, async_id }) => {
             await SELF.loadConfig();
             const token = await SELF.getToken();
 
             const newWarehouse = {
                 act_database_id: "",
-                async_id: crypto.randomUUID(),
+                async_id: async_id || crypto.randomUUID(),
                 description: `Thêm mới kho hàng ${warehouse_name}`,
                 inactive: false,
                 stock_code: warehouse_code,
@@ -693,6 +724,57 @@ function MisaApiService() {
                 return result;
             } catch (err) {
                 console.error(`[addWarehouse] FAIL | error=${JSON.stringify(err)}`);
+                throw err;
+            }
+        },
+        updateWarehouse: async ({ async_id, warehouse_code, warehouse_name, inactive = false }) => {
+            await SELF.loadConfig();
+            const token = await SELF.getToken();
+
+            const warehouseUpdate = {
+                act_database_id: "",
+                async_id: async_id || crypto.randomUUID(),
+                description: `Cap nhat kho hang ${warehouse_name || warehouse_code}`,
+                inactive: Boolean(inactive),
+                stock_code: warehouse_code,
+                stock_name: warehouse_name
+            };
+
+            try {
+                const result = await SELF.updateCrmObjects({
+                    select: 'Stocks',
+                    items: [warehouseUpdate],
+                    token,
+                    clientId: SELF.AMIS_CLIENT_ID,
+                    crmUrl: SELF.AMIS_CRM_URL
+                });
+                console.log(`[updateWarehouse] SUCCESS | result=${JSON.stringify(result)}`);
+                return result;
+            } catch (err) {
+                console.error(`[updateWarehouse] FAIL | error=${JSON.stringify(err)}`);
+                throw err;
+            }
+        },
+        deleteWarehouse: async ({ async_id }) => {
+            await SELF.loadConfig();
+            const token = await SELF.getToken();
+
+            if (!async_id) {
+                throw new Error('deleteWarehouse error: missing async_id');
+            }
+
+            try {
+                const result = await SELF.deleteCrmObjects({
+                    select: 'Stocks',
+                    items: [{ async_id }],
+                    token,
+                    clientId: SELF.AMIS_CLIENT_ID,
+                    crmUrl: SELF.AMIS_CRM_URL
+                });
+                console.log(`[deleteWarehouse] SUCCESS | result=${JSON.stringify(result)}`);
+                return result;
+            } catch (err) {
+                console.error(`[deleteWarehouse] FAIL | error=${JSON.stringify(err)}`);
                 throw err;
             }
         },

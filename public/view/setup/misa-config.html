@@ -274,11 +274,10 @@
                             </table>
                         </div>
                     </div>
-
                     <!-- ==================== TAB: Warehouses ==================== -->
                     <div class="tab-pane fade" id="tab-warehouses">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <input type="text" class="search-box" placeholder="Tìm theo mã kho, tên kho..."
+                            <input type="text" class="search-box" placeholder="Tìm theo mã kho, tên kho, async_id..."
                                    ng-model="filter.warehouses" />
                             <button class="btn-add-new" ng-click="showModal('warehouse', 'add')">
                                 <i class="fas fa-plus mr-1"></i> Thêm kho
@@ -291,6 +290,7 @@
                                         <th style="width:50px">#</th>
                                         <th style="width:160px">Mã kho</th>
                                         <th>Tên kho</th>
+                                        <th style="min-width:260px">Async ID</th>
                                         <th style="width:120px;text-align:center">Thao tác</th>
                                     </tr>
                                 </thead>
@@ -299,6 +299,7 @@
                                         <td style="color:#adb5bd">{{$index + 1}}</td>
                                         <td><span class="warehouse-code">{{item.warehouse_code}}</span></td>
                                         <td>{{item.warehouse_name}}</td>
+                                        <td><code>{{item.async_id || '-'}}</code></td>
                                         <td style="text-align:center">
                                             <button class="btn-action btn-edit mr-1" ng-click="showModal('warehouse', 'edit', item)" title="Sua">
                                                 <i class="fas fa-pen"></i>
@@ -309,7 +310,7 @@
                                         </td>
                                     </tr>
                                     <tr ng-if="filteredWarehouses.length === 0">
-                                        <td colspan="4">
+                                        <td colspan="5">
                                             <div class="empty-state">
                                                 <i class="fas fa-inbox"></i>
                                                 <p>Khong co du lieu</p>
@@ -330,7 +331,9 @@
                                 <select class="form-control" style="width:200px; border-radius:8px; font-size:14px;"
                                         ng-model="filter.enumCategory">
                                     <option value="">-- Tất cả danh mục --</option>
-                                    <option ng-repeat="cat in getCategories()" value="{{cat}}">{{cat}}</option>
+                                    <option value="pay_status">Trạng thái thanh toán</option>
+                                    <option value="status">Trạng thái đơn hàng</option>
+                                    <option value="sale_order_type">Loại đơn hàng</option>
                                 </select>
                             </div>
                             <button class="btn-add-new" ng-click="showModal('enum', 'add')">
@@ -465,6 +468,10 @@
                     <label>Tên kho <span style="color:red">*</span></label>
                     <input type="text" class="form-control" ng-model="form.warehouse_name" placeholder="VD: Kho Boxme Hà Nội" />
                 </div>
+                <div class="form-group">
+                    <label>Async ID</label>
+                    <input type="text" class="form-control" ng-model="form.async_id" placeholder="VD: b6a1c8f0-ec6f-4f6d-83a8-9c7f4477251f" />
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>
@@ -492,7 +499,9 @@
                     <label>Danh mục <span style="color:red">*</span></label>
                     <select class="form-control" ng-model="form.category">
                         <option value="">-- Chọn danh mục --</option>
-                        <option ng-repeat="cat in getCategories()" value="{{cat}}">{{cat}}</option>
+                        <option value="pay_status">Trạng thái thanh toán</option>
+                        <option value="status">Trạng thái đơn hàng</option>
+                        <option value="sale_order_type">Loại đơn hàng</option>
                     </select>
                 </div>
                 <div class="form-group">

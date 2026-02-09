@@ -45,9 +45,7 @@ BBTApp.controller('misaConfigCtrl', ["$scope", "$http", function ($scope, $http)
         return CATEGORY_LABELS[cat] || cat;
     };
     $scope.getCategories = function () {
-        var cats = {};
-        $scope.data.enums.forEach(function (e) { cats[e.category] = true; });
-        return Object.keys(cats).sort();
+        return ['pay_status', 'status', 'sale_order_type'];
     };
     $scope.getFilteredEnums = function () {
         var list = $scope.data.enums;

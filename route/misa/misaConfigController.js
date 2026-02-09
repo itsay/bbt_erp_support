@@ -1,4 +1,5 @@
 "use strict";
+const crypto = require("crypto");
 const Logger = require("./../util/logController").Logger;
 const { MisaAccount, MisaWarehouse, MisaEnum } = require("../../model/misa-config");
 const MisaApiService = require("../../service/misa/api.service");
@@ -56,9 +57,11 @@ function MisaConfigController() {
         addWarehouse: async (req, res) => {
             try {
                 const { warehouse_code, warehouse_name } = req.body;
+                const async_id = req.body?.async_id || crypto.randomUUID();
+                const payload = { ...req.body, async_id };
                 const [doc, misaResult] = await Promise.all([
-                    MisaWarehouse.create(req.body),
-                    MisaApiService.addWarehouse({ warehouse_code, warehouse_name })
+                    MisaWarehouse.create(payload),
+                    MisaApiService.addWarehouse({ warehouse_code, warehouse_name, async_id })
                 ]);
                 res.json({ s: 200, data: doc, misa: misaResult });
             } catch (error) {
@@ -69,7 +72,15 @@ function MisaConfigController() {
         editWarehouse: async (req, res) => {
             try {
                 const doc = await MisaWarehouse.findOneAndUpdate({ _id: req.params.id }, req.body, { new: true });
-                res.json({ s: 200, data: doc });
+                if (!doc) {
+                    return res.status(404).json({ s: 404, message: "Warehouse not found" });
+                }
+                const misaResult = await MisaApiService.updateWarehouse({
+                    async_id: doc.async_id,
+                    warehouse_code: doc.warehouse_code,
+                    warehouse_name: doc.warehouse_name
+                });
+                res.json({ s: 200, data: doc, misa: misaResult });
             } catch (error) {
                 Logger.error(error);
                 res.status(500).json({ s: 500, message: "Internal Server Error" });
@@ -77,8 +88,17 @@ function MisaConfigController() {
         },
         deleteWarehouse: async (req, res) => {
             try {
-                await MisaWarehouse.findOneAndDelete({ _id: req.params.id });
-                res.json({ s: 200 });
+                const found = await MisaWarehouse.findOne({ _id: req.params.id }).lean();
+                if (!found) {
+                    return res.status(404).json({ s: 404, message: "Warehouse not found" });
+                }
+                if (!found.async_id) {
+                    return res.status(400).json({ s: 400, message: "Warehouse missing async_id" });
+                }
+
+                const doc = await MisaWarehouse.findOneAndDelete({ _id: req.params.id });
+                const misaResult = await MisaApiService.deleteWarehouse({ async_id: found.async_id });
+                res.json({ s: 200, data: doc, misa: misaResult });
             } catch (error) {
                 Logger.error(error);
                 res.status(500).json({ s: 500, message: "Internal Server Error" });
