@@ -181,8 +181,10 @@ function OmisellJobController() {
         jobSaveOrders: async (_updatedTime) => {
             let updatedTime = _updatedTime;
             if (!updatedTime) {
-                const newestOrder = await Order.findOne({}).sort({ updated_time: -1 }).lean();
-                updatedTime = newestOrder?.updated_time;
+                // updatedTime là unixtime của ngày hôm qua
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                updatedTime = Math.floor(yesterday.getTime() / 1000);
             }
             await SELF.fetchAndSaveOrders(updatedTime);
             await SELF.fetchAndSaveOrderDetails(updatedTime);
