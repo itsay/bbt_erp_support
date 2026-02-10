@@ -1027,22 +1027,32 @@ function MisaApiService() {
                 const statusType = webhookData.event.split('.')[0];
 
                 // map trạng thái cho misa
-                crmOrder.status = statusType === 'order' ? misaEnums.find(e => e.category === 'status' && e.key == orderData?.status_id)?.label : crmOrder.status
-                crmOrder.delivery_status = statusType === 'shipment' ? misaEnums.find(e => e.category === 'delivery_status' && e.key == orderData?.status_id)?.label : crmOrder.delivery_status
+                crmOrder.status = statusType === 'order' ? misaEnums.find(e => e.category === 'status' && Number(e.key) === orderData?.status_id)?.label : crmOrder.status
+                crmOrder.delivery_status = statusType === 'shipment' ? misaEnums.find(e => e.category === 'delivery_status' && Number(e.key) === orderData?.status_id)?.label : crmOrder.delivery_status
 
                 clog(`Pushing order: ${omisell_order_number}`);
-                const misaId = await SELF.addCrmObjects({
-                    select: 'SaleOrders',
-                    items: [crmOrder],
-                    token,
-                    clientId: SELF.AMIS_CLIENT_ID,
-                    crmUrl: SELF.AMIS_CRM_URL
-                });
+
+                // Có misa_id trong db -> đã push -> update
+                let misaId;
+                if (orderDb.misa_id) {
+                    clog(`Order pushed to misa. Update order: ${omisell_order_number}`);
+                    crmOrder.id = orderDb.misa_id;
+                    misaId = orderDb.misa_id;
+                    await SELF.updateCrmObjects({ select: 'SaleOrders', items: [crmOrder], token, clientId: SELF.AMIS_CLIENT_ID, crmUrl: SELF.AMIS_CRM_URL })
+                } else {
+                    misaId = await SELF.addCrmObjects({
+                        select: 'SaleOrders',
+                        items: [crmOrder],
+                        token,
+                        clientId: SELF.AMIS_CLIENT_ID,
+                        crmUrl: SELF.AMIS_CRM_URL
+                    })
+                }
                 clog(`Push SUCCESS | omisell_order_number=${omisell_order_number} | misaId=${misaId}`);
 
                 await Order.updateOne(
                     { omisell_order_number },
-                    { $set: { misa_status: 'SUCCESS', misa_response: { misa_id: misaId }, misa_sent_time: sentAt, misa_body: crmOrder || '', misa_id: misaId } }
+                    { $set: { misa_status: StatusWebhook.SUCCESS, misa_response: { misa_id: misaId }, misa_sent_time: sentAt, misa_body: crmOrder || '', misa_id: misaId } }
                 );
             } catch (err) {
                 clog(`Push FAIL | omisell_order_number=${omisell_order_number} | error=${JSON.stringify(err.stack)}`);

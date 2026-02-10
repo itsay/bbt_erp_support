@@ -1,6 +1,7 @@
 
 const CronJob = require('cron').CronJob
 const OmisellJobController = require('../route/omisell/omisell.job.controller')
+const WebhookController = require('../route/webhook/webhook.controller')
 
 /**
  * Example:
@@ -21,7 +22,12 @@ const JOB_DEFINITIONS = [
         job: '0 23 * * *',
         func: OmisellJobController.jobSavePickups,
         args: [],
-    }
+    },
+    {
+        job: '*/1 * * * *',
+        func: WebhookController.jobProcessNewOrders,
+        args: [20],
+    },
 ]
 
 
