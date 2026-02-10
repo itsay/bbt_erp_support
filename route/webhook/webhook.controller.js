@@ -26,7 +26,8 @@ function WebhookController() {
          * Xử lý batch đơn hàng mới theo schedule
          * @param {Number} noOrders Số lượng đơn hàng cần xử lý
          */
-        jobProcessNewOrders: async (noOrders = 20) => {
+        jobProcessNewOrders: async (noOrders = 100) => {
+            console.time('[WebhookController.jobProcessNewOrders] - jobProcessNewOrders')
             if (SELF.PROCESS_NEW_ORDERS_LOCK) {
                 console.log('[WebhookController.jobProcessNewOrders] - process new orders is locked');
                 return;
@@ -36,7 +37,6 @@ function WebhookController() {
                 const webhookData = await WebhookEvent.find({ handle_status: StatusWebhookEnum.PENDING }).limit(noOrders).lean()
                 const successIds = []
                 const failedIds = []
-
                 for (const data of webhookData) {
                     let isSuccess = false
                     for (let retry = 1; retry <= 3; retry += 1) {
@@ -73,6 +73,7 @@ function WebhookController() {
             } finally {
                 SELF.PROCESS_NEW_ORDERS_LOCK = false
             }
+            console.timeEnd('[WebhookController.jobProcessNewOrders] - jobProcessNewOrders')
         }
     }
 }
