@@ -1038,8 +1038,11 @@ function MisaApiService() {
                     clog(`Order pushed to misa. Update order: ${omisell_order_number}`);
                     crmOrder.id = orderDb.misa_id;
                     misaId = orderDb.misa_id;
+                    console.time(`[MisaApiService.processNewOrderFromWebhook] - updateCrmObjects ${omisell_order_number}`)
                     await SELF.updateCrmObjects({ select: 'SaleOrders', items: [crmOrder], token, clientId: SELF.AMIS_CLIENT_ID, crmUrl: SELF.AMIS_CRM_URL })
+                    console.timeEnd(`[MisaApiService.processNewOrderFromWebhook] - updateCrmObjects ${omisell_order_number}`)
                 } else {
+                    console.time(`[MisaApiService.processNewOrderFromWebhook] - addCrmObjects ${omisell_order_number}`)
                     misaId = await SELF.addCrmObjects({
                         select: 'SaleOrders',
                         items: [crmOrder],
@@ -1047,6 +1050,7 @@ function MisaApiService() {
                         clientId: SELF.AMIS_CLIENT_ID,
                         crmUrl: SELF.AMIS_CRM_URL
                     })
+                    console.timeEnd(`[MisaApiService.processNewOrderFromWebhook] - addCrmObjects ${omisell_order_number}`)
                 }
                 clog(`Push SUCCESS | omisell_order_number=${omisell_order_number} | misaId=${misaId}`);
 

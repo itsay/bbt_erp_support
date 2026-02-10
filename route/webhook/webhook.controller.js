@@ -1,7 +1,7 @@
 const { WebhookEvent } = require('../../model/omisell')
 const StatusWebhookEnum = require('../../common/enums/status-webhook.eum')
 const MisaApiService = require('../../service/misa/api.service')
-const Util = require('../../common/util')
+const Util = require('../util/util')
 
 function WebhookController() {
     const SELF = {
@@ -41,7 +41,9 @@ function WebhookController() {
                     let isSuccess = false
                     for (let retry = 1; retry <= 3; retry += 1) {
                         try {
+                            console.time(`[WebhookController.jobProcessNewOrders] - process new order ${data.omisell_order_number}`)
                             await MisaApiService.processNewOrderFromWebhook(data)
+                            console.timeEnd(`[WebhookController.jobProcessNewOrders] - process new order ${data.omisell_order_number}`)
                             isSuccess = true
                             break
                         } catch (e) {
