@@ -1,6 +1,7 @@
 const { WebhookEvent } = require('../../model/omisell')
 const StatusWebhookEnum = require('../../common/enums/status-webhook.eum')
 const MisaApiService = require('../../service/misa/api.service')
+const Util = require('../../common/util')
 
 function WebhookController() {
     const SELF = {
@@ -45,6 +46,7 @@ function WebhookController() {
                             break
                         } catch (e) {
                             console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${retry}/3)`, e.stack)
+                            await Util.sleep(1000)
                         }
                     }
 
