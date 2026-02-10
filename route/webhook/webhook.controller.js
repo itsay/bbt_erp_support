@@ -30,12 +30,47 @@ function WebhookController() {
                 console.log('[WebhookController.jobProcessNewOrders] - process new orders is locked');
                 return;
             }
-            SELF.PROCESS_NEW_ORDERS_LOCK = true;
-            const webhookData = await WebhookEvent.find({ handle_status: StatusWebhookEnum.PENDING }).limit(noOrders).lean()
-            for (const data of webhookData) {
-                await MisaApiService.processNewOrderFromWebhook(data)
+            SELF.PROCESS_NEW_ORDERS_LOCK = true
+            try {
+                const webhookData = await WebhookEvent.find({ handle_status: StatusWebhookEnum.PENDING }).limit(noOrders).lean()
+                const successIds = []
+                const failedIds = []
+
+                for (const data of webhookData) {
+                    let isSuccess = false
+                    for (let retry = 1; retry <= 3; retry += 1) {
+                        try {
+                            await MisaApiService.processNewOrderFromWebhook(data)
+                            isSuccess = true
+                            break
+                        } catch (e) {
+                            console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${retry}/3)`, e.stack)
+                        }
+                    }
+
+                    if (isSuccess) {
+                        successIds.push(data._id)
+                    } else {
+                        failedIds.push(data._id)
+                    }
+                }
+
+                if (successIds.length > 0) {
+                    await WebhookEvent.updateMany(
+                        { _id: { $in: successIds } },
+                        { $set: { handle_status: StatusWebhookEnum.SUCCESS } }
+                    )
+                }
+
+                if (failedIds.length > 0) {
+                    await WebhookEvent.updateMany(
+                        { _id: { $in: failedIds } },
+                        { $set: { handle_status: StatusWebhookEnum.FAILED } }
+                    )
+                }
+            } finally {
+                SELF.PROCESS_NEW_ORDERS_LOCK = false
             }
-            SELF.PROCESS_NEW_ORDERS_LOCK = false;
         }
     }
 }
