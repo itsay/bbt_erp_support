@@ -1,4 +1,5 @@
 const OmisellApiService = require('../../service/omisell/api.service')
+const MisaApiService = require('../../service/misa/api.service')
 const { Order, OrderDetail, OrderRevenue, PickupList } = require('../../model/omisell')
 const Util = require('../util/util')
 
@@ -185,6 +186,7 @@ function OmisellJobController() {
             }
             await SELF.fetchAndSaveOrders(updatedTime);
             await SELF.fetchAndSaveOrderDetails(updatedTime);
+            await MisaApiService.processNewOrders();
             // await SELF.fetchAndSaveOrderRevenues(updatedTime);
         },
         jobSavePickups: async () => {

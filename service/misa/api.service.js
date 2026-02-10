@@ -636,11 +636,11 @@ function MisaApiService() {
     }
     return {
         loadConfig: SELF.loadConfig,
-        test: async () => {
+        processNewOrders: async () => {
             await SELF.loadConfig();
             const token = await SELF.getToken()
             const [docs, pickups] = await Promise.all([
-                Order.find({ misa_status: { $ne: "SUCCESS" } }).sort({ created_time: 1 }).lean(),
+                Order.find({ misa_status: { $ne: StatusWebhook.SUCCESS } }).sort({ created_time: 1 }).lean(),
                 PickupList.find().lean(),
             ]);
             let success = 0, fail = 0;
@@ -650,7 +650,7 @@ function MisaApiService() {
                 const sentAt = new Date();
                 await Order.updateOne(
                     { _id: doc._id },
-                    { $set: { misa_status: 'PENDING', misa_sent_time: sentAt } }
+                    { $set: { misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt } }
                 );
                 let detailDoc = await OrderDetail.findOne({ omisell_order_number: orderNo });
                 if (!detailDoc || !detailDoc?.created_time) {
