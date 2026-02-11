@@ -1071,6 +1071,7 @@ function MisaApiService() {
                         }
                     }
                 ).catch(e => clog('Failed to update FAIL status:', e));
+                throw err;
             }
         }
     }
