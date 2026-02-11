@@ -1034,7 +1034,7 @@ function MisaApiService() {
 
                 // Có misa_id trong db -> đã push -> update
                 let misaId;
-                if (orderDb.misa_id) {
+                if (orderDb?.misa_id) {
                     clog(`Order pushed to misa. Update order: ${omisell_order_number}`);
                     crmOrder.id = orderDb.misa_id;
                     misaId = orderDb.misa_id;
