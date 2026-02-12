@@ -34,7 +34,7 @@ function WebhookController() {
             }
             SELF.PROCESS_NEW_ORDERS_LOCK = true
             try {
-                const webhookData = await WebhookEvent.find({ handle_status: StatusWebhookEnum.PENDING }).limit(noOrders).lean()
+                const webhookData = await WebhookEvent.find({ handle_status: StatusWebhookEnum.PENDING }).sort({ receivedAt: -1 }).limit(noOrders).lean()
                 // const successIds = []
                 // const failedIds = []
                 for (const data of webhookData) {
