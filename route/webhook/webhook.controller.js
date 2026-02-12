@@ -72,6 +72,8 @@ function WebhookController() {
                         { $set: { handle_status: StatusWebhookEnum.FAILED } }
                     )
                 }
+            } catch (e) {
+                console.log(`[WebhookController.jobProcessNewOrders] - process new orders failed`, e.stack)
             } finally {
                 SELF.PROCESS_NEW_ORDERS_LOCK = false
             }

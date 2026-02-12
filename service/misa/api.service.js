@@ -1010,10 +1010,21 @@ function MisaApiService() {
                     }
 
                 }
-                const orderDetailDb = await OrderDetail.findOne({ omisell_order_number: omisell_order_number }).lean();
+                let orderDetailDb = await OrderDetail.findOne({ omisell_order_number: omisell_order_number }).lean();
                 if (!orderDetailDb) {
                     clog(`Cannot get order detail for order: ${omisell_order_number}`);
-                    return
+                    clog(`Start crawl order detail for order: ${omisell_order_number}`)
+                    const orderDetailData = await OmisellApiService.getOrderDetail(omisell_order_number);
+                    if (!orderDetailData?.data) {
+                        clog(`Cannot get order detail from Omisell for order: ${omisell_order_number}`);
+                        return   
+                    }
+                    orderDetailDb = orderDetailData.data;
+                    await OrderDetail.updateOne(
+                        { omisell_order_number: omisell_order_number },
+                        { $set: orderDetailData.data },
+                        { upsert: true }
+                    );
                 }
 
                 // Cập nhật trạng thái xử lý misa của đơn hàng
@@ -1058,6 +1069,7 @@ function MisaApiService() {
                     { omisell_order_number },
                     { $set: { misa_status: StatusWebhook.SUCCESS, misa_response: { misa_id: misaId }, misa_sent_time: sentAt, misa_body: crmOrder || '', misa_id: misaId } }
                 );
+                return Promise.resolve();
             } catch (err) {
                 clog(`Push FAIL | omisell_order_number=${omisell_order_number} | error=${JSON.stringify(err.stack)}`);
                 await Order.updateOne(
@@ -1071,7 +1083,7 @@ function MisaApiService() {
                         }
                     }
                 ).catch(e => clog('Failed to update FAIL status:', e));
-                throw err;
+                return Promise.reject(err);
             }
         }
     }
