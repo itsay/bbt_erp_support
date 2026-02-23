@@ -34,5 +34,6 @@ mongoose.connect(
 
 
 async function test() {
-    await MisaApiService.processNewOrders()
+    const data = await OmisellApiService.getOrderDetail('ODVN26022282F47C22')
+    console.log(JSON.stringify(data, null, 2))
 }

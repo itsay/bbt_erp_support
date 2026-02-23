@@ -21,7 +21,7 @@ function OmisellApiService() {
                 });
                 if (!response.ok) throw new Error(`Token request failed: ${response.status}`);
                 const data = await response.json();
-                if (data && data.data) {
+                if (data?.data) {
                     SELF.config.accessToken = data.data.token;
                     SELF.config.refreshToken = data.data.refresh_token;
                 }
@@ -43,7 +43,7 @@ function OmisellApiService() {
                 });
                 if (!response.ok) throw new Error(`Refresh token request failed: ${response.status}`);
                 const data = await response.json();
-                if (data && data.data) {
+                if (data?.data) {
                     SELF.config.accessToken = data.data.token || SELF.config.accessToken;
                     SELF.config.refreshToken = data.data.refresh_token || SELF.config.refreshToken;
                 }

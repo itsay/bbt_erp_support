@@ -42,7 +42,7 @@ if (cluster.isMaster) {
     });
     app.use('/webhook', webhook)
     app.use("/v1", home);
-    app.get('*', function (req, res) {
+    app.get('*', (req, res) => {
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
     });
 
@@ -55,13 +55,13 @@ if (cluster.isMaster) {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         },
-        function (error) {
+        (error) => {
             if (error) {
                 Logger.error(`Connect mongodb for app fail: ${error.stack}`);
                 return;
             }
             Logger.info(`Worker ${process.pid} Connected mongodb for app`);
-            app.listen(process.env.WEB_PORT, function () {
+            app.listen(process.env.WEB_PORT, () => {
                 Logger.info(
                     `Worker ${process.pid} listen on port ${process.env.WEB_PORT}`
                 );
@@ -70,10 +70,10 @@ if (cluster.isMaster) {
     );
 }
 
-cluster.on("exit", function (worker) {
+cluster.on("exit", (worker) => {
     console.log(`Worker ${worker.process.pid} die. Call new worker`);
     const w = cluster.fork();
-    w.on("message", function (request) {
+    w.on("message", (request) => {
         handleRequestFromWorker(request);
     });
 });

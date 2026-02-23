@@ -1,14 +1,9 @@
 const { WebhookEvent } = require('../../model/omisell')
 const StatusWebhookEnum = require('../../common/enums/status-webhook.eum')
 const MisaApiService = require('../../service/misa/api.service')
-const Util = require('../util/util')
+const RedisController = require('../util/redisController')
 
 function WebhookController() {
-    const SELF = {
-        handleSyncOrder: () => {
-        },
-        PROCESS_NEW_ORDERS_LOCK: false,
-    }
     return {
         receiveWebhook: async (req, res) => {
             console.log(`[receiveWebhook] - payload: ${JSON.stringify(req.body)}`);
@@ -28,69 +23,43 @@ function WebhookController() {
          */
         jobProcessNewOrders: async (noOrders = 100) => {
             console.time('[WebhookController.jobProcessNewOrders] - jobProcessNewOrders')
-            if (SELF.PROCESS_NEW_ORDERS_LOCK) {
+            const lock = await RedisController.storeAtomic('PROCESS_WEBHOOK_ORDERS', '1', 600)
+            if (!lock) {
                 console.log('[WebhookController.jobProcessNewOrders] - process new orders is locked');
                 return;
             }
-            SELF.PROCESS_NEW_ORDERS_LOCK = true
             try {
                 const webhookData = await WebhookEvent.find({ handle_status: StatusWebhookEnum.PENDING }).sort({ receivedAt: -1 }).limit(noOrders).lean()
-                // const successIds = []
-                // const failedIds = []
                 for (const data of webhookData) {
-                    try {
-                        await MisaApiService.processNewOrderFromWebhook(data)
-                        // successIds.push(data._id)
-                        await WebhookEvent.updateMany(
-                        { _id: { $in: data._id } },
-                        { $set: { handle_status: StatusWebhookEnum.SUCCESS } }
-                    )
-                    } catch (e) {
-                        console.log(`[WebhookController.jobProcessNewOrders] - process new order failed`, e.stack)
-                        // failedIds.push(data._id)
+                    const MAX_RETRIES = 3
+                    let lastError = null
+                    let success = false
+                    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+                        try {
+                            await MisaApiService.processNewOrderFromWebhook(data)
+                            success = true
+                            break
+                        } catch (e) {
+                            lastError = e
+                            console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${attempt}/${MAX_RETRIES})`, e.stack)
+                        }
+                    }
+                    if (success) {
                         await WebhookEvent.updateMany(
                             { _id: { $in: data._id } },
-                            { $set: { handle_status: StatusWebhookEnum.FAILED, handle_error: e.stack } }
+                            { $set: { handle_status: StatusWebhookEnum.SUCCESS } }
+                        )
+                    } else {
+                        await WebhookEvent.updateMany(
+                            { _id: { $in: data._id } },
+                            { $set: { handle_status: StatusWebhookEnum.FAILED, handle_error: lastError.stack } }
                         )
                     }
-                    // let isSuccess = false
-                    // for (let retry = 1; retry <= 3; retry += 1) {
-                    //     try {
-                    //         console.time(`[WebhookController.jobProcessNewOrders] - process new order ${data.omisell_order_number}`)
-                    //         await MisaApiService.processNewOrderFromWebhook(data)
-                    //         console.timeEnd(`[WebhookController.jobProcessNewOrders] - process new order ${data.omisell_order_number}`)
-                    //         isSuccess = true
-                    //         break
-                    //     } catch (e) {
-                    //         console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${retry}/3)`, e.stack)
-                    //         await Util.sleep(1000)
-                    //     }
-                    // }
-
-                    // if (isSuccess) {
-                    //     successIds.push(data._id)
-                    // } else {
-                    //     failedIds.push(data._id)
-                    // }
                 }
-
-                // if (successIds.length > 0) {
-                //     await WebhookEvent.updateMany(
-                //         { _id: { $in: successIds } },
-                //         { $set: { handle_status: StatusWebhookEnum.SUCCESS } }
-                //     )
-                // }
-
-                // if (failedIds.length > 0) {
-                //     await WebhookEvent.updateMany(
-                //         { _id: { $in: failedIds } },
-                //         { $set: { handle_status: StatusWebhookEnum.FAILED } }
-                //     )
-                // }
             } catch (e) {
                 console.log(`[WebhookController.jobProcessNewOrders] - process new orders failed`, e.stack)
             } finally {
-                SELF.PROCESS_NEW_ORDERS_LOCK = false
+                RedisController.delKey('PROCESS_WEBHOOK_ORDERS')
             }
             console.timeEnd('[WebhookController.jobProcessNewOrders] - jobProcessNewOrders')
         }

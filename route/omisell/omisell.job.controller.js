@@ -7,6 +7,8 @@ const Util = require('../util/util')
 function OmisellJobController() {
     const SELF = {
         fetchAndSaveOrders: async (updatedTime) => {
+            const clog = (msg, ...args) => console.log(`[OmisellJobController.fetchAndSaveOrders] - ${msg}`, ...args);
+            clog('Start fetching orders');
             const pageSize = 100
             let page = 1
 
@@ -23,12 +25,13 @@ function OmisellJobController() {
                 const orders = results || [];
 
                 if (page === 1) {
-                    console.log(`Total orders to fetch: ${count}`);
+                    clog(`Total orders to fetch: ${count}`);
                 }
                 processed += results.length;
 
                 const ops = orders.map(o => {
                     const key = o.omisell_order_number || o.order_number;
+                    clog(`Processing order ${key}`);
                     o.omisell_order_number = key;
                     if (!key) return null;
                     return {
@@ -44,7 +47,7 @@ function OmisellJobController() {
                     await Order.bulkWrite(ops, { ordered: false });
                 }
 
-                console.log(`Page ${page} processed. Orders count: ${processed}/${count}`);
+                clog(`Page ${page} processed. Orders count: ${processed}/${count}`);
 
                 if (!next) {
                     break;
@@ -55,11 +58,13 @@ function OmisellJobController() {
             }
         },
         fetchAndSaveOrderDetails: async (updatedTime) => {
+            const clog = (msg, ...args) => console.log(`[OmisellJobController.fetchAndSaveOrderDetails] - ${msg}`, ...args);
+            clog('Start fetching order details');
             const orders = await Order.find({ updated_time: { $gte: updatedTime } }, { omisell_order_number: 1 }).lean();
             const orderNos = orders.map(o => o.omisell_order_number);
             let processed = 0;
             const total = orderNos.length;
-            console.log(`Fetching order details for ${total} orders`);
+            clog(`Fetching order details for ${total} orders`);
             const chunk = (arr, size) => {
                 const out = [];
                 for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
@@ -71,7 +76,7 @@ function OmisellJobController() {
                 for (const orderNo of batch) {
                     let detail = await OmisellApiService.getOrderDetail(orderNo);
                     if (detail?.data?.retry_after) {
-                        console.log('wait after', detail?.data?.retry_after);
+                        clog('wait after', detail?.data?.retry_after);
                         await Util.sleep(Number(detail.data.retry_after) + 1);
                         detail = await OmisellApiService.getOrderDetail(orderNo);
                     }
@@ -80,16 +85,19 @@ function OmisellJobController() {
                         { $set: { omisell_order_number: orderNo, ...detail?.data, fetchedAt: new Date() } },
                         { upsert: true }
                     );
+                    clog(`Total invetory item ${orderNo}: ${detail?.data.parcels?.[0].inventory_items?.length || 0}`);
                     processed++;
-                    if (processed % 50 === 0) console.log(`Order details processed: ${processed}/${total}`);
+                    if (processed % 50 === 0) clog(`Order details processed: ${processed}/${total}`);
                 }
                 if (bi < batches.length - 1) {
                     await Util.sleep(2);
                 }
             }
-            console.log(`Total order details saved: ${processed}/${total}`);
+            clog(`Total order details saved: ${processed}/${total}`);
         },
         fetchAndSaveOrderRevenues: async (updatedFrom) => {
+            const clog = (msg, ...args) => console.log(`[OmisellJobController.fetchAndSaveOrderRevenues] - ${msg}`, ...args);
+            clog('Start fetching order revenues');
             const pageSize = 100;
             let page = 1;
 
@@ -104,7 +112,7 @@ function OmisellJobController() {
                 const revenues = results || [];
 
                 if (page === 1) {
-                    console.log(`Total revenues to fetch: ${count}`);
+                    clog(`Total revenues to fetch: ${count}`);
                 }
 
                 const ops = revenues.map(o => {
@@ -123,7 +131,7 @@ function OmisellJobController() {
                     await OrderRevenue.bulkWrite(ops, { ordered: false });
                 }
 
-                console.log(`Page ${page} processed. Revenue count: ${revenues.length}/${count}`);
+                clog(`Page ${page} processed. Revenue count: ${revenues.length}/${count}`);
 
                 if (!next) {
                     break;
@@ -134,6 +142,8 @@ function OmisellJobController() {
             }
         },
         fetchAndSavePickups: async () => {
+            const clog = (msg, ...args) => console.log(`[OmisellJobController.fetchAndSavePickups] - ${msg}`, ...args);
+            clog('Start fetching pickups');
             const pageSize = 25;
             let page = 1;
 
@@ -147,7 +157,7 @@ function OmisellJobController() {
                 const pickups = results || [];
 
                 if (page === 1) {
-                    console.log(`Total pickups to fetch: ${count}`);
+                    clog(`Total pickups to fetch: ${count}`);
                 }
 
                 const ops = pickups.map(p => {
@@ -166,7 +176,7 @@ function OmisellJobController() {
                     await PickupList.bulkWrite(ops, { ordered: false });
                 }
 
-                console.log(`Page ${page} processed. Pickup count: ${pickups.length}/${count}`);
+                clog(`Page ${page} processed. Pickup count: ${pickups.length}/${count}`);
 
                 if (!next) {
                     break;
@@ -186,6 +196,7 @@ function OmisellJobController() {
                 yesterday.setDate(yesterday.getDate() - 1);
                 updatedTime = Math.floor(yesterday.getTime() / 1000);
             }
+            console.log(`[OmisellJobController.jobSaveOrders] - Job started with updatedTime: ${updatedTime}`);
             await SELF.fetchAndSaveOrders(updatedTime);
             await SELF.fetchAndSaveOrderDetails(updatedTime);
             await MisaApiService.processNewOrders();

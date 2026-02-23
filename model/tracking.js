@@ -13,7 +13,7 @@ const Tracking = mongoose.Schema({
   ip: { type: String },
   createdAt: { type: Date, default: Date.now },
   userAgent: { type: String }
-}, { versionKey: false, timestamps: false })
+}, { versionKey: false, timestamps: true })
 
 /**@memberOf Tracking*/
 Tracking.statics.objectId = function (id) {

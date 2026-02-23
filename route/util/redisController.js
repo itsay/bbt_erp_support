@@ -8,6 +8,15 @@ const client = redis.createClient({
 
 function RedisService() {
   return {
+    storeAtomic: function (key, value, expTime = null) {
+      return client.set('fin_' + key, value, {
+        NX: true,
+        EX: expTime
+      });
+    },
+    delKey: function (key) {
+      return client.del('fin_' + key)
+    },
     storeTokenInRedis: function (key, value) {
       return new Promise((resolve, reject) => {
         key = 'fin_' + key
@@ -82,13 +91,13 @@ function RedisService() {
     },
     initConnection: async () => {
       client.on('error', function (err) {
-          Logger.info(`Error on connect Redis ${err}`)
+        Logger.info(`Error on connect Redis ${err}`)
       }).connect().then(() => {
-          Logger.info(`Connected to Redis`)
+        Logger.info(`Connected to Redis`)
       }).catch(e => {
-          Logger.error(`Connected to Redis fail: `, e)
+        Logger.error(`Connected to Redis fail: `, e)
       })
-  }
+    }
   }
 }
 module.exports = RedisService()

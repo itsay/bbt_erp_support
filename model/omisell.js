@@ -5,24 +5,24 @@ const mongoose = require('mongoose')
  * @description
  */
 const Order = mongoose.Schema({
-}, { versionKey: false, timestamps: false, strict: false })
+}, { versionKey: false, timestamps: true, strict: false })
 
 /** @class OrderDetail
  * @description
  */
 const OrderDetail = mongoose.Schema({
-}, { versionKey: false, timestamps: false, strict: false })
+}, { versionKey: false, timestamps: true, strict: false })
 
 
 const OrderRevenue = mongoose.Schema({
-}, { versionKey: false, timestamps: false, strict: false })
+}, { versionKey: false, timestamps: true, strict: false })
 
 
 const PickupList = mongoose.Schema({
-}, { versionKey: false, timestamps: false, strict: false })
+}, { versionKey: false, timestamps: true, strict: false })
 
 const WebhookEvent = mongoose.Schema({
-}, { versionKey: false, timestamps: false, strict: false })
+}, { versionKey: false, timestamps: true, strict: false })
 
 
 module.exports = {
