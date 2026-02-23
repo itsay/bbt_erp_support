@@ -11,13 +11,14 @@ mongoose.connect(
         useNewUrlParser: true,
         useUnifiedTopology: true,
     },
-    function (error) {
+    (error) => {
         if (error) {
             console.error(`Connect mongodb for app fail: ${error.stack}`);
             return;
         }
         console.log(`Connected mongodb for app`);
         SchedulerService.startJobs();
+        console.log('Scheduler started');
 
     }
 )
