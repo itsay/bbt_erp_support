@@ -693,12 +693,27 @@ function MisaApiService() {
                     );
                     success++;
                 } catch (err) {
-                    console.error(`Push FAIL | omisell_order_number=${orderNo} | error=${String(err)}`);
-                    await Order.updateOne(
-                        { _id: doc._id },
-                        { $set: { misa_status: 'FAIL', misa_response: { error: JSON.stringify(err) }, misa_sent_time: sentAt, misa_body: crmOrder } }
-                    );
-                    fail++;
+                    const isDuplicate = err?.success === false && err?.code === 400 &&
+                        Array.isArray(err?.results) && err.results.some(r =>
+                            Array.isArray(r.validate_infos) && r.validate_infos.some(v =>
+                                v.field_name === 'sale_order_no' || v.field_name === 'other_sys_order_code'
+                            )
+                        );
+                    if (isDuplicate) {
+                        console.log(`Push DUPLICATE (mark SUCCESS) | omisell_order_number=${orderNo}`);
+                        await Order.updateOne(
+                            { _id: doc._id },
+                            { $set: { misa_status: 'SUCCESS', misa_response: { duplicate: true, error: JSON.stringify(err) }, misa_sent_time: sentAt, misa_body: crmOrder } }
+                        );
+                        success++;
+                    } else {
+                        console.error(`Push FAIL | omisell_order_number=${orderNo} | error=${String(err)}`);
+                        await Order.updateOne(
+                            { _id: doc._id },
+                            { $set: { misa_status: 'FAIL', misa_response: { error: JSON.stringify(err) }, misa_sent_time: sentAt, misa_body: crmOrder } }
+                        );
+                        fail++;
+                    }
                 }
                 if ((i + 1) % 10 === 0) {
                     console.log(`Pushed ${i + 1}/${docs.length} orders to MISA | success=${success} fail=${fail}`);
