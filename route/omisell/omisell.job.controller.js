@@ -188,13 +188,15 @@ function OmisellJobController() {
         },
     }
     return {
-        jobSaveOrders: async (_updatedTime) => {
-            let updatedTime = _updatedTime;
-            if (!updatedTime) {
-                // updatedTime là unixtime của ngày hôm qua
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                updatedTime = Math.floor(yesterday.getTime() / 1000);
+        /**
+         * Lấy đơn hàng theo updatedTime và đẩy lên misa tự động
+         * @param {number} _updatedTime - Unix timestamp of the last updated time
+         * @param {number} intervalTime - Time interval in seconds (default: 1 day)
+         */
+        jobSaveOrders: async (intervalTime = 86400) => {
+            let updatedTime = Math.floor(Date.now() / 1000) - intervalTime;
+            if (updatedTime < 0) {
+                updatedTime = 0;
             }
             console.log(`[OmisellJobController.jobSaveOrders] - Job started with updatedTime: ${updatedTime}`);
             await SELF.fetchAndSaveOrders(updatedTime);

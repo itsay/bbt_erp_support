@@ -19,6 +19,11 @@ const JOB_DEFINITIONS = [
         args: [],
     },
     {
+        job: '*/10 * * * *',
+        func: OmisellJobController.jobSaveOrders,
+        args: [600], // 10 minutes
+    },
+    {
         job: '0 23 * * *',
         func: OmisellJobController.jobSavePickups,
         args: [],
