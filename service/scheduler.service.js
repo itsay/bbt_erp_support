@@ -42,16 +42,15 @@ function SchedulerService() {
     }
     return {
         startJobs: () => {
-            const clog = (msg) => `[SchedulerService] ${msg}`;
             JOB_DEFINITIONS.forEach((job) => {
-                clog(`start job ${job.func.name} with cron ${job.job}`)
+                console.log(`start job ${job.func.name} with cron ${job.job}`)
                 const cronJob = new CronJob(job.job, async () => {
                     try {
-                        clog(`Job ${job.func.name} starts`)
+                        console.log(`Job ${job.func.name} starts`)
                         await job.func(...job.args);
-                        clog(`Job ${job.func.name} ends`)
+                        console.log(`Job ${job.func.name} ends`)
                     } catch (error) {
-                        clog(`Job ${job.func.name} failed: ${error.message}`);
+                        console.log(`Job ${job.func.name} failed: ${error.message}`);
                     }
                 }, null, true, 'Asia/Ho_Chi_Minh');
                 cronJob.start();
@@ -59,7 +58,7 @@ function SchedulerService() {
             });
         },
         stopJobs: () => {
-            clog(`SchedulerService.stopJobs: stop all jobs`);
+            console.log(`SchedulerService.stopJobs: stop all jobs`);
             SELF.jobs.forEach((cronJob) => {
                 cronJob.stop();
             });
