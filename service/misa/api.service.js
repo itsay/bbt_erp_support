@@ -363,7 +363,7 @@ function MisaApiService() {
         mapOmisellToCrmSaleOrder: (src, pickups = []) => {
             const clog = (msg, ...args) => console.log(`[MisaApiService.mapOmisellToCrmSaleOrder] ${msg}`, ...args);
             const omisellNo = src.omisell_order_number;
-            console.log('[mapOmisellToCrmSaleOrder] - omisell_order_number:', omisellNo);
+            clog('omisell_order_number:', omisellNo);
             const parcels = Array.isArray(src.parcels) ? src.parcels : [];
             const firstParcel = parcels[0] || {};
             const inventoryItems = parcels.flatMap(p => Array.isArray(p.inventory_items) ? p.inventory_items : []);
@@ -636,6 +636,9 @@ function MisaApiService() {
     }
     return {
         loadConfig: SELF.loadConfig,
+        getToken: SELF.getToken,
+        mapOmisellToCrmSaleOrder: SELF.mapOmisellToCrmSaleOrder,
+        addCrmObjects: SELF.addCrmObjects,
         processNewOrders: async () => {
             await SELF.loadConfig();
             const token = await SELF.getToken()
@@ -1017,7 +1020,7 @@ function MisaApiService() {
                     const orderDetailData = await OmisellApiService.getOrderDetail(omisell_order_number);
                     if (!orderDetailData?.data) {
                         clog(`Cannot get order detail from Omisell for order: ${omisell_order_number}`);
-                        return   
+                        return
                     }
                     orderDetailDb = orderDetailData.data;
                     await OrderDetail.updateOne(
