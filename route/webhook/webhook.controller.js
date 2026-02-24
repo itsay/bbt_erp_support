@@ -32,39 +32,28 @@ function WebhookController() {
             try {
                 const webhookData = await WebhookEvent.find({ handle_status: StatusWebhookEnum.PENDING }).sort({ receivedAt: 1 }).limit(noOrders).lean()
 
-                // Lọc các trạng thái đơn hàng và giao hàng mới nhất của mỗi đơn hàng (xác định bằng order_number), sort theo receivedAt
+                // Nhóm theo order_number: giữ lại webhook mới nhất của mỗi đơn hàng, bỏ qua "others" nếu đơn hàng đã có group
                 const grouped = {};
-                const orderToBatchIds = {};
                 webhookData.forEach(d => {
                     const orderNo = d.order_number || d.data?.omisell_order_number;
                     const type = d.event?.split('.')?.[0];
-                    if (orderNo) {
-                        if (!orderToBatchIds[orderNo]) orderToBatchIds[orderNo] = [];
-                        orderToBatchIds[orderNo].push(d._id);
-                    }
                     if (orderNo && (type === 'order' || type === 'shipment')) {
-                        const key = orderNo;
-                        if (!grouped[key]) {
-                            grouped[key] = { latest: d, allIds: [], orderNo, isOrderGroup: true };
+                        if (!grouped[orderNo]) {
+                            grouped[orderNo] = { latest: d, orderNo, isOrderGroup: true };
                         }
-                        // Vì webhookData đã sort ascending theo receivedAt, nên item sau cùng sẽ là mới nhất
-                        if (new Date(d.receivedAt) >= new Date(grouped[key].latest.receivedAt)) {
-                            grouped[key].latest = d;
+                        // webhookData đã sort ascending theo receivedAt, nên item sau cùng là mới nhất
+                        if (new Date(d.receivedAt) >= new Date(grouped[orderNo].latest.receivedAt)) {
+                            grouped[orderNo].latest = d;
                         }
-                        grouped[key].allIds.push(d._id);
                     } else {
                         const key = `others_${d._id}`;
-                        grouped[key] = { latest: d, allIds: [d._id], orderNo, isOrderGroup: false };
+                        grouped[key] = { latest: d, orderNo, isOrderGroup: false };
                     }
                 });
 
                 const toBeProcessedData = Object.values(grouped)
                     .filter(g => !(g.orderNo && !g.isOrderGroup && grouped[g.orderNo]))
-                    .map(g => ({
-                        ...g.latest,
-                        allIds: g.allIds,
-                        successIds: (g.orderNo && g.isOrderGroup) ? orderToBatchIds[g.orderNo] : g.allIds
-                    }))
+                    .map(g => ({ ...g.latest, orderNo: g.orderNo }))
                     .sort((a, b) => new Date(a.receivedAt) - new Date(b.receivedAt));
 
                 for (const data of toBeProcessedData) {
@@ -76,24 +65,20 @@ function WebhookController() {
                         try {
                             await MisaApiService.processNewOrderFromWebhook(data)
                             success = true
-                            break
                         } catch (e) {
                             lastError = e
                             console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${attempt}/${MAX_RETRIES})`, e.stack)
                         }
                         console.timeEnd(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
-
+                        if (success) break
                     }
+                    const query = data.orderNo
+                        ? { order_number: data.orderNo, handle_status: StatusWebhookEnum.PENDING }
+                        : { _id: data._id };
                     if (success) {
-                        await WebhookEvent.updateMany(
-                            { _id: { $in: data.successIds } },
-                            { $set: { handle_status: StatusWebhookEnum.SUCCESS } }
-                        )
+                        await WebhookEvent.updateMany(query, { $set: { handle_status: StatusWebhookEnum.SUCCESS } })
                     } else {
-                        await WebhookEvent.updateMany(
-                            { _id: { $in: data.allIds } },
-                            { $set: { handle_status: StatusWebhookEnum.FAILED, handle_error: lastError?.stack } }
-                        )
+                        await WebhookEvent.updateMany(query, { $set: { handle_status: StatusWebhookEnum.FAILED, handle_error: lastError?.stack } })
                     }
                 }
             } catch (e) {
