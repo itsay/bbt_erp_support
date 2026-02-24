@@ -1005,21 +1005,23 @@ function MisaApiService() {
                     return Promise.reject()
                 }
 
-                const [token, orderDb] = await Promise.all([
+                const [token, orderDb, _orderDetailDb] = await Promise.all([
                     SELF.getToken(),
                     Order.findOne({ omisell_order_number: omisell_order_number }).lean(),
+                    OrderDetail.findOne({ omisell_order_number: omisell_order_number }).lean()
                 ])
 
                 // Không có sẵn đơn hàng thì get lại từ API
-                let orderDetailDb;
+                let orderDetailDb = _orderDetailDb;
                 if (!orderDb) {
-                    await Order.updateOne(
-                        { omisell_order_number: omisell_order_number },
-                        { $set: orderData },
-                        { upsert: true }
-                    );
-
-                    const orderDetailData = await OmisellApiService.getOrderDetail(omisell_order_number);
+                    const [_, orderDetailData] = await Promise.all([
+                        Order.updateOne(
+                            { omisell_order_number: omisell_order_number },
+                            { $set: orderData },
+                            { upsert: true }
+                        ),
+                        OmisellApiService.getOrderDetail(omisell_order_number)
+                    ])
                     if (orderDetailData?.data) {
                         await OrderDetail.updateOne(
                             { omisell_order_number: omisell_order_number },

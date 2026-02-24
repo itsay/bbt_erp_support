@@ -73,7 +73,9 @@ function WebhookController() {
                     let success = false
                     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
                         try {
+                            console.time(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
                             await MisaApiService.processNewOrderFromWebhook(data)
+                            console.timeEnd(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
                             success = true
                             break
                         } catch (e) {
