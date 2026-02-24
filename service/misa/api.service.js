@@ -989,10 +989,10 @@ function MisaApiService() {
          */
         processNewOrderFromWebhook: async (webhookData) => {
             const clog = (msg, ...args) => console.log(`[MisaApiService.processNewOrderFromWebhook] ${msg}`, ...args);
+            const orderData = webhookData.data;
             const omisell_order_number = orderData.omisell_order_number;
             const sentAt = new Date();
             try {
-                const orderData = webhookData.data;
 
                 // Validate input
                 if (!orderData || !orderData.omisell_order_number) {
