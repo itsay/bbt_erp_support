@@ -13,6 +13,7 @@ BBTApp.controller('misaConfigCtrl', ["$scope", "$http", function ($scope, $http)
         pay_status: 'Trạng thái thanh toán',
         status: 'Trạng thái đơn hàng',
         sale_order_type: 'Loại đơn hàng',
+        delivery_status: 'Trạng thái giao hàng',
     };
 
     // ===== Fetch data =====
@@ -45,7 +46,7 @@ BBTApp.controller('misaConfigCtrl', ["$scope", "$http", function ($scope, $http)
         return CATEGORY_LABELS[cat] || cat;
     };
     $scope.getCategories = function () {
-        return ['pay_status', 'status', 'sale_order_type'];
+        return ['pay_status', 'status', 'sale_order_type', 'delivery_status'];
     };
     $scope.getFilteredEnums = function () {
         var list = $scope.data.enums;
