@@ -992,6 +992,7 @@ function MisaApiService() {
             const orderData = webhookData.data;
             const omisell_order_number = orderData.omisell_order_number;
             const sentAt = new Date();
+            let crmOrder;
             try {
 
                 // Validate input
@@ -1011,7 +1012,6 @@ function MisaApiService() {
                     { $set: { processStatus: StatusWebhook.PROCESSING } }
                 );
 
-                let crmOrder;
 
                 const [_, token, orderDb, misaEnums] = await Promise.all([
                     SELF.loadConfig(),
