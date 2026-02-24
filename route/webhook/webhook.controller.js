@@ -44,10 +44,11 @@ function WebhookController() {
                                 grouped[orderNo][type] = { latest: d, orderNo, isOrderGroup: true };
                             }
                         }
-                        // webhookData đã sort ascending theo receivedAt, nên item sau cùng là mới nhất
-                        if (new Date(d.receivedAt) >= new Date(grouped[orderNo][type].latest.receivedAt)) {
-                            grouped[orderNo][type].latest = d;
-                        }
+                        // // webhookData đã sort ascending theo receivedAt, nên item sau cùng là mới nhất
+                        // if (new Date(d.receivedAt) >= new Date(grouped[orderNo][type].latest.receivedAt)) {
+                        //     grouped[orderNo][type].latest = d;
+                        // }
+                        grouped[orderNo][type].latest = d;
                     } else {
                         const key = `others_${d._id}`;
                         grouped[key] = { latest: d, orderNo, isOrderGroup: false };
