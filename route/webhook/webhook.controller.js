@@ -39,9 +39,12 @@ function WebhookController() {
                     const type = d.event?.split('.')?.[0];
                     if (orderNo && (type === 'order' || type === 'shipment')) {
                         if (!grouped[orderNo]) {
-                            grouped[orderNo] = { [type]: { latest: d, orderNo, isOrderGroup: true } };
+                            grouped[orderNo] = {};
+                            grouped[orderNo][type] = { latest: d, orderNo, isOrderGroup: true };
+                        } else {
+                            console.log(`grouped[orderNo]`, grouped[orderNo]);
+                            grouped[orderNo][type].latest = d;
                         }
-                        grouped[orderNo][type].latest = d;
                         // // webhookData đã sort ascending theo receivedAt, nên item sau cùng là mới nhất
                         // if (new Date(d.receivedAt) >= new Date(grouped[orderNo][type].latest.receivedAt)) {
                         //     grouped[orderNo][type].latest = d;
