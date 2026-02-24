@@ -17,6 +17,7 @@ function MisaApiService() {
         warehouses: [],
         pay_status: {},
         status: {},
+        delivery_status: {},
         sale_order_type: {},
         /**
          * Load cấu hình từ database. Gọi trước khi xử lý đơn hàng.
@@ -40,10 +41,12 @@ function MisaApiService() {
             }));
             SELF.pay_status = {};
             SELF.status = {};
+            SELF.delivery_status = {};
             SELF.sale_order_type = {};
             for (const e of enums) {
                 if (e.category === 'pay_status') SELF.pay_status[e.key] = e.label;
                 else if (e.category === 'status') SELF.status[e.key] = e.label;
+                else if (e.category === 'delivery_status') SELF.delivery_status[e.key] = e.label;
                 else if (e.category === 'sale_order_type') SELF.sale_order_type[e.key] = e.label;
             }
             console.log(`[MisaApiService] Config loaded: ${accounts.length} accounts, ${warehouses.length} warehouses, ${enums.length} enums`);
@@ -634,6 +637,7 @@ function MisaApiService() {
             }
         },
     }
+    SELF.loadConfig();
     return {
         loadConfig: SELF.loadConfig,
         getToken: SELF.getToken,
@@ -1001,26 +1005,13 @@ function MisaApiService() {
                     return 0;
                 }
 
-                const orderProcessStatus = await Order.findOne({ omisell_order_number }, { processStatus: 1 }).lean();
-                if (orderProcessStatus?.processStatus === StatusWebhook.PROCESSING) {
-                    clog(`Order ${omisell_order_number} is already being processed. Skip.`);
-                    return 2
-                }
-                // Set trạng thái xử lý đơn hàng trước khi thực hiện
-                await Order.updateOne(
-                    { omisell_order_number: omisell_order_number },
-                    { $set: { processStatus: StatusWebhook.PROCESSING } }
-                );
-
-
-                const [_, token, orderDb, misaEnums] = await Promise.all([
-                    SELF.loadConfig(),
+                const [token, orderDb] = await Promise.all([
                     SELF.getToken(),
                     Order.findOne({ omisell_order_number: omisell_order_number }).lean(),
-                    MisaEnum.find({ category: { $in: ['delivery_status', 'status'] } }).lean()
                 ])
 
                 // Không có sẵn đơn hàng thì get lại từ API
+                let orderDetailDb;
                 if (!orderDb) {
                     await Order.updateOne(
                         { omisell_order_number: omisell_order_number },
@@ -1035,15 +1026,10 @@ function MisaApiService() {
                             { $set: orderDetailData.data },
                             { upsert: true }
                         );
+                        orderDetailDb = orderDetailData?.data;
                     }
                 }
-                // Flag trạng thái đang xử lý
-                await Order.updateOne(
-                    { omisell_order_number: omisell_order_number },
-                    { $set: { processStatus: StatusWebhook.PROCESSING } }
-                );
 
-                let orderDetailDb = await OrderDetail.findOne({ omisell_order_number: omisell_order_number }).lean();
                 if (!orderDetailDb) {
                     clog(`Cannot get order detail for order: ${omisell_order_number}`);
                     clog(`Start crawl order detail for order: ${omisell_order_number}`)
@@ -1066,18 +1052,18 @@ function MisaApiService() {
                     {
                         $set: {
                             misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt,
-                            processStatus: StatusWebhook.PROCESSING
                         }
                     }
                 );
 
                 crmOrder = SELF.mapOmisellToCrmSaleOrder(orderDetailDb, SELF.PICKUP_LIST);
 
-                const statusType = webhookData.event.split('.')[0];
-
-                // map trạng thái cho misa
-                crmOrder.status = statusType === 'order' ? misaEnums.find(e => e.category === 'status' && Number(e.key) === orderData?.status_id)?.label : crmOrder.status
-                crmOrder.delivery_status = statusType === 'shipment' ? misaEnums.find(e => e.category === 'delivery_status' && Number(e.key) === orderData?.status_id)?.label : crmOrder.delivery_status
+                const statusType = webhookData.event?.split('.')?.[0];
+                if (statusType === 'order') {
+                    crmOrder.status = SELF.status[orderData?.status_id] || crmOrder.status;
+                } else if (statusType === 'shipment') {
+                    crmOrder.delivery_status = SELF.delivery_status[orderData?.status_id] || crmOrder.delivery_status;
+                }
 
                 clog(`Pushing order: ${omisell_order_number}`);
 
@@ -1111,7 +1097,6 @@ function MisaApiService() {
                             misa_response: { misa_id: misaId }, misa_sent_time: sentAt,
                             misa_body: crmOrder || '',
                             misa_id: misaId,
-                            processStatus: StatusWebhook.COMPLETED
                         }
                     }
                 );
