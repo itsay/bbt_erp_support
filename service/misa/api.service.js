@@ -1002,7 +1002,7 @@ function MisaApiService() {
                 }
 
                 const orderProcessStatus = await Order.findOne({ omisell_order_number }, { processStatus: 1 }).lean();
-                if (orderProcessStatus?.processStatus === StatusWebhook.PROCESSING && orderProcessStatus.misa_status !== StatusWebhook.SUCCESS) {
+                if (orderProcessStatus?.processStatus === StatusWebhook.PROCESSING) {
                     clog(`Order ${omisell_order_number} is already being processed. Skip.`);
                     return 2
                 }
