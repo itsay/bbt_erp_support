@@ -1002,7 +1002,7 @@ function MisaApiService() {
             const orderData = webhookData.data;
             const omisell_order_number = orderData.omisell_order_number;
             const sentAt = new Date();
-            console.log(`Processing webhook for order: ${omisell_order_number} | event: ${webhookData}`);
+            console.log(`Processing webhook for order: ${omisell_order_number} | event: ${JSON.stringify(webhookData)}`);
             let crmOrder;
             try {
 

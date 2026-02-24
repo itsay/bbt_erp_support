@@ -39,11 +39,14 @@ function WebhookController() {
                     const type = d.event?.split('.')?.[0];
                     if (orderNo && (type === 'order' || type === 'shipment')) {
                         if (!grouped[orderNo]) {
-                            grouped[orderNo] = { latest: d, orderNo, isOrderGroup: true };
+                            grouped[orderNo] = {};
+                            if (grouped[orderNo][type]) {
+                                grouped[orderNo][type] = { latest: d, orderNo, isOrderGroup: true };
+                            }
                         }
                         // webhookData đã sort ascending theo receivedAt, nên item sau cùng là mới nhất
                         if (new Date(d.receivedAt) >= new Date(grouped[orderNo].latest.receivedAt)) {
-                            grouped[orderNo].latest = d;
+                            grouped[orderNo][type].latest = d;
                         }
                     } else {
                         const key = `others_${d._id}`;
