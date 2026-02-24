@@ -988,9 +988,8 @@ function MisaApiService() {
          * @return {Promise<Number>} 1: thành công, 0: thất bại, 2: đang xử lý
          */
         processNewOrderFromWebhook: async (webhookData) => {
+            const clog = (msg, ...args) => console.log(`[MisaApiService.processNewOrderFromWebhook] ${msg}`, ...args);
             try {
-
-                const clog = (msg, ...args) => console.log(`[MisaApiService.processNewOrderFromWebhook] ${msg}`, ...args);
                 const orderData = webhookData.data;
 
                 // Validate input
@@ -1041,7 +1040,7 @@ function MisaApiService() {
                 // Flag trạng thái đang xử lý
                 await Order.updateOne(
                     { omisell_order_number: omisell_order_number },
-                    { $set: { misa_status: StatusWebhook.PROCESSING } }
+                    { $set: { processStatus: StatusWebhook.PROCESSING } }
                 );
 
                 let orderDetailDb = await OrderDetail.findOne({ omisell_order_number: omisell_order_number }).lean();
@@ -1064,7 +1063,12 @@ function MisaApiService() {
                 // Cập nhật trạng thái xử lý misa của đơn hàng
                 await Order.updateOne(
                     { omisell_order_number: omisell_order_number },
-                    { $set: { misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt } }
+                    {
+                        $set: {
+                            misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt,
+                            processStatus: StatusWebhook.PROCESSING
+                        }
+                    }
                 );
 
                 crmOrder = SELF.mapOmisellToCrmSaleOrder(orderDetailDb, SELF.PICKUP_LIST);
@@ -1101,7 +1105,15 @@ function MisaApiService() {
 
                 await Order.updateOne(
                     { omisell_order_number },
-                    { $set: { misa_status: StatusWebhook.SUCCESS, misa_response: { misa_id: misaId }, misa_sent_time: sentAt, misa_body: crmOrder || '', misa_id: misaId } }
+                    {
+                        $set: {
+                            misa_status: StatusWebhook.SUCCESS,
+                            misa_response: { misa_id: misaId }, misa_sent_time: sentAt,
+                            misa_body: crmOrder || '',
+                            misa_id: misaId,
+                            processStatus: StatusWebhook.COMPLETED
+                        }
+                    }
                 );
                 return 1;
             } catch (err) {

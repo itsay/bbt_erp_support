@@ -3,4 +3,5 @@ module.exports = {
     SUCCESS: 'SUCCESS',
     FAILED: 'FAILED',
     PROCESSING: 'PROCESSING',
+    COMPLETED: 'COMPLETED',
 }
