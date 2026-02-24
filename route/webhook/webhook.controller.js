@@ -40,7 +40,7 @@ function WebhookController() {
                     if (orderNo && (type === 'order' || type === 'shipment')) {
                         if (!grouped[orderNo]) {
                             grouped[orderNo] = {};
-                            if (grouped[orderNo][type]) {
+                            if (!grouped[orderNo][type]) {
                                 grouped[orderNo][type] = { latest: d, orderNo, isOrderGroup: true };
                             }
                         }
