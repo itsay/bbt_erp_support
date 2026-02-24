@@ -989,6 +989,8 @@ function MisaApiService() {
          */
         processNewOrderFromWebhook: async (webhookData) => {
             const clog = (msg, ...args) => console.log(`[MisaApiService.processNewOrderFromWebhook] ${msg}`, ...args);
+            const omisell_order_number = orderData.omisell_order_number;
+            const sentAt = new Date();
             try {
                 const orderData = webhookData.data;
 
@@ -998,7 +1000,6 @@ function MisaApiService() {
                     return 0;
                 }
 
-                const omisell_order_number = orderData.omisell_order_number;
                 const orderProcessStatus = await Order.findOne({ omisell_order_number }, { processStatus: 1 }).lean();
                 if (orderProcessStatus?.processStatus === StatusWebhook.PROCESSING && orderProcessStatus.misa_status !== StatusWebhook.SUCCESS) {
                     clog(`Order ${omisell_order_number} is already being processed. Skip.`);
@@ -1010,7 +1011,6 @@ function MisaApiService() {
                     { $set: { processStatus: StatusWebhook.PROCESSING } }
                 );
 
-                const sentAt = new Date();
                 let crmOrder;
 
                 const [_, token, orderDb, misaEnums] = await Promise.all([
