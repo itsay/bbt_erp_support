@@ -677,7 +677,6 @@ function MisaApiService() {
                 let crmOrder
                 try {
                     crmOrder = SELF.mapOmisellToCrmSaleOrder(source, pickups);
-                    console.time(`Push ${orderNo}`);
                     const misaId = await SELF.addCrmObjects({
                         select: 'SaleOrders',
                         items: [crmOrder],
@@ -686,10 +685,9 @@ function MisaApiService() {
                         crmUrl: SELF.AMIS_CRM_URL
                     });
                     console.log(`Push SUCCESS | omisell_order_number=${orderNo} | misaId=${misaId}`);
-                    console.timeEnd(`Push ${orderNo}`);
                     await Order.updateOne(
                         { _id: doc._id },
-                        { $set: { misa_status: 'SUCCESS', misa_response: { misa_id: misaId }, misa_sent_time: sentAt, misa_body: crmOrder || '', misa_id: misaId } }
+                        { $set: { misa_status: StatusWebhook.SUCCESS, misa_response: { misa_id: misaId }, misa_sent_time: sentAt, misa_body: crmOrder || '', misa_id: misaId } }
                     );
                     success++;
                 } catch (err) {
@@ -703,14 +701,14 @@ function MisaApiService() {
                         console.log(`Push DUPLICATE (mark SUCCESS) | omisell_order_number=${orderNo}`);
                         await Order.updateOne(
                             { _id: doc._id },
-                            { $set: { misa_status: 'SUCCESS', misa_response: { duplicate: true, error: JSON.stringify(err) }, misa_sent_time: sentAt, misa_body: crmOrder } }
+                            { $set: { misa_status: StatusWebhook.SUCCESS, misa_response: { duplicate: true, error: JSON.stringify(err) }, misa_sent_time: sentAt, misa_body: crmOrder } }
                         );
                         success++;
                     } else {
                         console.error(`Push FAIL | omisell_order_number=${orderNo} | error=${String(err)}`);
                         await Order.updateOne(
                             { _id: doc._id },
-                            { $set: { misa_status: 'FAIL', misa_response: { error: JSON.stringify(err) }, misa_sent_time: sentAt, misa_body: crmOrder } }
+                            { $set: { misa_status: StatusWebhook.FAILED, misa_response: { error: JSON.stringify(err) }, misa_sent_time: sentAt, misa_body: crmOrder } }
                         );
                         fail++;
                     }
