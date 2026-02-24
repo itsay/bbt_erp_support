@@ -1002,7 +1002,7 @@ function MisaApiService() {
                 // Validate input
                 if (!orderData || !orderData.omisell_order_number) {
                     clog('Invalid orderData: missing omisell_order_number');
-                    return 0;
+                    return Promise.reject()
                 }
 
                 const [token, orderDb] = await Promise.all([
@@ -1036,7 +1036,7 @@ function MisaApiService() {
                     const orderDetailData = await OmisellApiService.getOrderDetail(omisell_order_number);
                     if (!orderDetailData?.data) {
                         clog(`Cannot get order detail from Omisell for order: ${omisell_order_number}`);
-                        return
+                        return Promise.reject()
                     }
                     orderDetailDb = orderDetailData.data;
                     await OrderDetail.updateOne(
@@ -1100,7 +1100,7 @@ function MisaApiService() {
                         }
                     }
                 );
-                return 1;
+                return Promise.resolve();
             } catch (err) {
                 clog(`Push FAIL | omisell_order_number=${omisell_order_number} | error=${JSON.stringify(err.stack)}`);
                 await Order.updateOne(
@@ -1114,7 +1114,7 @@ function MisaApiService() {
                         }
                     }
                 ).catch(e => clog('Failed to update FAIL status:', e));
-                return 0;
+                return Promise.reject(err);
             }
         }
     }

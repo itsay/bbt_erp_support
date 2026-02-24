@@ -34,13 +34,18 @@ function WebhookController() {
 
                 // Lọc các trạng thái đơn hàng và giao hàng mới nhất của mỗi đơn hàng (xác định bằng order_number), sort theo receivedAt
                 const grouped = {};
+                const orderToBatchIds = {};
                 webhookData.forEach(d => {
                     const orderNo = d.order_number || d.data?.omisell_order_number;
                     const type = d.event?.split('.')?.[0];
+                    if (orderNo) {
+                        if (!orderToBatchIds[orderNo]) orderToBatchIds[orderNo] = [];
+                        orderToBatchIds[orderNo].push(d._id);
+                    }
                     if (orderNo && (type === 'order' || type === 'shipment')) {
                         const key = orderNo;
                         if (!grouped[key]) {
-                            grouped[key] = { latest: d, allIds: [] };
+                            grouped[key] = { latest: d, allIds: [], orderNo, isOrderGroup: true };
                         }
                         // Vì webhookData đã sort ascending theo receivedAt, nên item sau cùng sẽ là mới nhất
                         if (new Date(d.receivedAt) >= new Date(grouped[key].latest.receivedAt)) {
@@ -49,36 +54,38 @@ function WebhookController() {
                         grouped[key].allIds.push(d._id);
                     } else {
                         const key = `others_${d._id}`;
-                        grouped[key] = { latest: d, allIds: [d._id] };
+                        grouped[key] = { latest: d, allIds: [d._id], orderNo, isOrderGroup: false };
                     }
                 });
 
-                const toBeProcessedData = Object.values(grouped).map(g => ({
-                    ...g.latest,
-                    allIds: g.allIds
-                })).sort((a, b) => new Date(a.receivedAt) - new Date(b.receivedAt));
+                const toBeProcessedData = Object.values(grouped)
+                    .filter(g => !(g.orderNo && !g.isOrderGroup && grouped[g.orderNo]))
+                    .map(g => ({
+                        ...g.latest,
+                        allIds: g.allIds,
+                        successIds: (g.orderNo && g.isOrderGroup) ? orderToBatchIds[g.orderNo] : g.allIds
+                    }))
+                    .sort((a, b) => new Date(a.receivedAt) - new Date(b.receivedAt));
 
                 for (const data of toBeProcessedData) {
                     const MAX_RETRIES = 3
                     let lastError = null
-                    let processCode = -1
+                    let success = false
                     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
                         try {
-                            processCode = await MisaApiService.processNewOrderFromWebhook(data)
-                            if (processCode === 1) break
+                            await MisaApiService.processNewOrderFromWebhook(data)
+                            success = true
+                            break
                         } catch (e) {
                             lastError = e
                             console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${attempt}/${MAX_RETRIES})`, e.stack)
-                            processCode = 0
                         }
                     }
-                    if (processCode === 1) {
+                    if (success) {
                         await WebhookEvent.updateMany(
-                            { _id: { $in: data.allIds } },
+                            { _id: { $in: data.successIds } },
                             { $set: { handle_status: StatusWebhookEnum.SUCCESS } }
                         )
-                    } else if (processCode === 2) {
-                        console.log(`[WebhookController.jobProcessNewOrders] - order ${data.order_number} is being processed, keep it pending for now`)
                     } else {
                         await WebhookEvent.updateMany(
                             { _id: { $in: data.allIds } },
