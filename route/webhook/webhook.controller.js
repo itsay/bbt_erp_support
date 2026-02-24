@@ -72,16 +72,17 @@ function WebhookController() {
                     let lastError = null
                     let success = false
                     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+                        console.time(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
                         try {
-                            console.time(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
                             await MisaApiService.processNewOrderFromWebhook(data)
-                            console.timeEnd(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
                             success = true
                             break
                         } catch (e) {
                             lastError = e
                             console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${attempt}/${MAX_RETRIES})`, e.stack)
                         }
+                        console.timeEnd(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
+
                     }
                     if (success) {
                         await WebhookEvent.updateMany(
