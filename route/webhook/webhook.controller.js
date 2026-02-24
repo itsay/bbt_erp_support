@@ -22,6 +22,7 @@ function WebhookController() {
          * @param {Number} noOrders Số lượng đơn hàng cần xử lý
          */
         jobProcessNewOrders: async (noOrders = 100) => {
+            console.log(`[WebhookController.jobProcessNewOrders] - start processing new orders, noOrders: ${noOrders}`);
             console.time('[WebhookController.jobProcessNewOrders] - jobProcessNewOrders')
             const lock = await RedisController.storeAtomic('PROCESS_WEBHOOK_ORDERS', '1', 600)
             if (!lock) {
