@@ -38,13 +38,14 @@ function WebhookController() {
                     const orderNo = d.order_number || d.data?.omisell_order_number;
                     const type = d.event?.split('.')?.[0];
                     if (orderNo && (type === 'order' || type === 'shipment')) {
-                        if (!grouped[orderNo]) {
-                            grouped[orderNo] = {};
-                            grouped[orderNo][type] = { latest: d, orderNo, isOrderGroup: true };
+                        const key = `${type}_${orderNo}`;
+                        if (!grouped[key]) {
+                            grouped[key] = { latest: d, orderNo, isOrderGroup: true };
                         } else {
-                            console.log(`grouped[orderNo]`, grouped[orderNo]);
-                            grouped[orderNo][type].latest = d;
+                            console.log(`grouped[${key}]`, grouped[key]);
+                            grouped[key].latest = d;
                         }
+
                         // // webhookData đã sort ascending theo receivedAt, nên item sau cùng là mới nhất
                         // if (new Date(d.receivedAt) >= new Date(grouped[orderNo][type].latest.receivedAt)) {
                         //     grouped[orderNo][type].latest = d;
