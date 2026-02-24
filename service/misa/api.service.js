@@ -987,22 +987,35 @@ function MisaApiService() {
         /**
          * Xử lý đơn hàng mới theo data từ webhook
          * @param {Object} webhookData Data webhook
+         * @return {Promise<Number>} 1: thành công, 0: thất bại, 2: đang xử lý
          */
         processNewOrderFromWebhook: async (webhookData) => {
-            const clog = (msg, ...args) => console.log(`[MisaApiService.processNewOrderFromWebhook] ${msg}`, ...args);
-            const orderData = webhookData.data;
-
-            // Validate input
-            if (!orderData || !orderData.omisell_order_number) {
-                clog('Invalid orderData: missing omisell_order_number');
-                return;
-            }
-
-            const omisell_order_number = orderData.omisell_order_number;
-            const sentAt = new Date();
-            let crmOrder;
-
             try {
+
+                const clog = (msg, ...args) => console.log(`[MisaApiService.processNewOrderFromWebhook] ${msg}`, ...args);
+                const orderData = webhookData.data;
+
+                // Validate input
+                if (!orderData || !orderData.omisell_order_number) {
+                    clog('Invalid orderData: missing omisell_order_number');
+                    return 0;
+                }
+
+                const omisell_order_number = orderData.omisell_order_number;
+                const orderProcessStatus = await Order.findOne({ omisell_order_number }, { processStatus: 1 }).lean();
+                if (orderProcessStatus?.processStatus === StatusWebhook.PROCESSING) {
+                    clog(`Order ${omisell_order_number} is already being processed. Skip.`);
+                    return 2
+                }
+                // Set trạng thái xử lý đơn hàng trước khi thực hiện
+                await Order.updateOne(
+                    { omisell_order_number: omisell_order_number },
+                    { $set: { processStatus: StatusWebhook.PROCESSING } }
+                );
+
+                const sentAt = new Date();
+                let crmOrder;
+
                 const [_, token, orderDb, misaEnums] = await Promise.all([
                     SELF.loadConfig(),
                     SELF.getToken(),
@@ -1026,8 +1039,13 @@ function MisaApiService() {
                             { upsert: true }
                         );
                     }
-
                 }
+                // Flag trạng thái đang xử lý
+                await Order.updateOne(
+                    { omisell_order_number: omisell_order_number },
+                    { $set: { misa_status: StatusWebhook.PROCESSING } }
+                );
+
                 let orderDetailDb = await OrderDetail.findOne({ omisell_order_number: omisell_order_number }).lean();
                 if (!orderDetailDb) {
                     clog(`Cannot get order detail for order: ${omisell_order_number}`);
@@ -1087,7 +1105,7 @@ function MisaApiService() {
                     { omisell_order_number },
                     { $set: { misa_status: StatusWebhook.SUCCESS, misa_response: { misa_id: misaId }, misa_sent_time: sentAt, misa_body: crmOrder || '', misa_id: misaId } }
                 );
-                return Promise.resolve();
+                return 1;
             } catch (err) {
                 clog(`Push FAIL | omisell_order_number=${omisell_order_number} | error=${JSON.stringify(err.stack)}`);
                 await Order.updateOne(
@@ -1101,7 +1119,7 @@ function MisaApiService() {
                         }
                     }
                 ).catch(e => clog('Failed to update FAIL status:', e));
-                return Promise.reject(err);
+                return 0;
             }
         }
     }

@@ -33,22 +33,24 @@ function WebhookController() {
                 for (const data of webhookData) {
                     const MAX_RETRIES = 3
                     let lastError = null
-                    let success = false
+                    let processCode = -1
                     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
                         try {
-                            await MisaApiService.processNewOrderFromWebhook(data)
-                            success = true
-                            break
+                            processCode = await MisaApiService.processNewOrderFromWebhook(data)
+                            if (processCode === 1) break
                         } catch (e) {
                             lastError = e
                             console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${attempt}/${MAX_RETRIES})`, e.stack)
+                            processCode = 0
                         }
                     }
-                    if (success) {
+                    if (processCode === 1) {
                         await WebhookEvent.updateMany(
                             { _id: { $in: data._id } },
                             { $set: { handle_status: StatusWebhookEnum.SUCCESS } }
                         )
+                    } else if (processCode === 2) {
+                        console.log(`[WebhookController.jobProcessNewOrders] - order ${data.order_number} is being processed, keep it pending for now`)
                     } else {
                         await WebhookEvent.updateMany(
                             { _id: { $in: data._id } },
