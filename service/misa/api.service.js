@@ -1114,13 +1114,13 @@ function MisaApiService() {
                 );
                 return Promise.resolve();
             } catch (err) {
-                clog(`Push FAIL | omisell_order_number=${omisell_order_number} | error=${err.message || String(err)}`);
+                clog(`Push FAIL | omisell_order_number=${omisell_order_number} | error=${JSON.stringify(err)}`);
                 await Order.updateOne(
                     { omisell_order_number },
                     {
                         $set: {
                             misa_status: StatusWebhook.FAILED,
-                            misa_response: { error: err?.message || String(err) },
+                            misa_response: { error: JSON.stringify(err) },
                             misa_sent_time: sentAt,
                             misa_body: crmOrder || ''
                         }
