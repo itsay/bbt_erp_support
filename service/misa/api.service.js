@@ -1002,6 +1002,7 @@ function MisaApiService() {
             const orderData = webhookData.data;
             const omisell_order_number = orderData.omisell_order_number;
             const sentAt = new Date();
+            console.log(`Processing webhook for order: ${omisell_order_number} | event: ${webhookData}`);
             let crmOrder;
             try {
 
@@ -1088,6 +1089,7 @@ function MisaApiService() {
                     console.time(`[MisaApiService.processNewOrderFromWebhook] - updateCrmObjects ${omisell_order_number}`)
                     await SELF.updateCrmObjects({ select: 'SaleOrders', items: [crmOrder], token, clientId: SELF.AMIS_CLIENT_ID, crmUrl: SELF.AMIS_CRM_URL })
                     console.timeEnd(`[MisaApiService.processNewOrderFromWebhook] - updateCrmObjects ${omisell_order_number}`)
+
                 } else {
                     console.time(`[MisaApiService.processNewOrderFromWebhook] - addCrmObjects ${omisell_order_number}`)
                     misaId = await SELF.addCrmObjects({
