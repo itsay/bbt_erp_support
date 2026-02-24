@@ -32,32 +32,27 @@ function WebhookController() {
             try {
                 const webhookData = await WebhookEvent.find({ handle_status: StatusWebhookEnum.PENDING }).sort({ receivedAt: 1 }).limit(noOrders).lean()
 
-                // Nhóm theo order_number: giữ lại webhook mới nhất của mỗi đơn hàng, bỏ qua "others" nếu đơn hàng đã có group
-                const grouped = {};
-                webhookData.forEach(d => {
+                // Đã sort tăng dần receivedAt, nên duyệt ngược để lấy luôn webhook mới nhất theo (type, orderNo)
+                const grouped = new Map();
+                const orderGroupedOrderNos = new Set();
+                for (let i = webhookData.length - 1; i >= 0; i--) {
+                    const d = webhookData[i];
                     const orderNo = d.order_number || d.data?.omisell_order_number;
                     const type = d.event?.split('.')?.[0];
                     if (orderNo && (type === 'order' || type === 'shipment')) {
                         const key = `${type}_${orderNo}`;
-                        if (!grouped[key]) {
-                            grouped[key] = { latest: d, orderNo, isOrderGroup: true };
-                        } else {
-                            console.log(`grouped[${key}]`, grouped[key]);
-                            grouped[key].latest = d;
+                        if (!grouped.has(key)) {
+                            grouped.set(key, { latest: d, orderNo, isOrderGroup: true });
+                            orderGroupedOrderNos.add(orderNo);
                         }
-
-                        // // webhookData đã sort ascending theo receivedAt, nên item sau cùng là mới nhất
-                        // if (new Date(d.receivedAt) >= new Date(grouped[orderNo][type].latest.receivedAt)) {
-                        //     grouped[orderNo][type].latest = d;
-                        // }
                     } else {
                         const key = `others_${d._id}`;
-                        grouped[key] = { latest: d, orderNo, isOrderGroup: false };
+                        grouped.set(key, { latest: d, orderNo, isOrderGroup: false });
                     }
-                });
+                }
 
-                const toBeProcessedData = Object.values(grouped)
-                    .filter(g => !(g.orderNo && !g.isOrderGroup && grouped[g.orderNo]))
+                const toBeProcessedData = Array.from(grouped.values())
+                    .filter(g => !(g.orderNo && !g.isOrderGroup && orderGroupedOrderNos.has(g.orderNo)))
                     .map(g => ({ ...g.latest, orderNo: g.orderNo }))
                     .sort((a, b) => new Date(a.receivedAt) - new Date(b.receivedAt));
 

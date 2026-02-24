@@ -1000,18 +1000,16 @@ function MisaApiService() {
         processNewOrderFromWebhook: async (webhookData) => {
             const clog = (msg, ...args) => console.log(`[MisaApiService.processNewOrderFromWebhook] ${msg}`, ...args);
             const orderData = webhookData.data;
+            // Validate input
+            if (!orderData?.omisell_order_number) {
+                clog('Invalid orderData: missing omisell_order_number');
+                return Promise.reject()
+            }
             const omisell_order_number = orderData.omisell_order_number;
             const sentAt = new Date();
             console.log(`Processing webhook for order: ${omisell_order_number} | event: ${JSON.stringify(webhookData)}`);
             let crmOrder;
             try {
-
-                // Validate input
-                if (!orderData || !orderData.omisell_order_number) {
-                    clog('Invalid orderData: missing omisell_order_number');
-                    return Promise.reject()
-                }
-
                 const [token, orderDb, _orderDetailDb] = await Promise.all([
                     SELF.getToken(),
                     Order.findOne({ omisell_order_number: omisell_order_number }).lean(),
@@ -1104,7 +1102,7 @@ function MisaApiService() {
                 clog(`Push SUCCESS | omisell_order_number=${omisell_order_number} | misaId=${misaId}`);
 
                 await Order.updateOne(
-                    { omisell_order_number },
+                    { omisell_order_number: omisell_order_number },
                     {
                         $set: {
                             misa_status: StatusWebhook.SUCCESS,
