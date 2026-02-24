@@ -1113,7 +1113,7 @@ function MisaApiService() {
                     {
                         $set: {
                             misa_status: StatusWebhook.FAILED,
-                            misa_response: { error: err?.message || err?.stack || JSON.stringify(err) },
+                            misa_response: { error: JSON.stringify(err?.message || err?.stack || err) },
                             misa_sent_time: sentAt,
                             misa_body: crmOrder || ''
                         }
