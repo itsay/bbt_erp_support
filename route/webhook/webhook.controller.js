@@ -29,7 +29,7 @@ function WebhookController() {
                 return;
             }
             try {
-                const webhookData = await WebhookEvent.find({ handle_status: StatusWebhookEnum.PENDING }).sort({ receivedAt: -1 }).limit(noOrders).lean()
+                const webhookData = await WebhookEvent.find({ handle_status: StatusWebhookEnum.PENDING }).sort({ receivedAt: 1 }).limit(noOrders).lean()
                 for (const data of webhookData) {
                     const MAX_RETRIES = 3
                     let lastError = null
