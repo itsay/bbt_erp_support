@@ -14,6 +14,8 @@ function OmisellJobController() {
 
             let processed = 0
 
+            const omisell_order_numbers = []
+
             while (true) {
                 const rs = await OmisellApiService.getOrders({
                     updated_from: updatedTime,
@@ -31,6 +33,7 @@ function OmisellJobController() {
 
                 const ops = orders.map(o => {
                     const key = o.omisell_order_number || o.order_number;
+                    omisell_order_numbers.push(key);
                     clog(`Processing order ${key}`);
                     o.omisell_order_number = key;
                     if (!key) return null;
@@ -56,21 +59,20 @@ function OmisellJobController() {
                 await Util.sleep(2);
                 page++;
             }
+            return omisell_order_numbers
         },
-        fetchAndSaveOrderDetails: async (updatedTime) => {
+        fetchAndSaveOrderDetails: async (omisell_order_numbers) => {
             const clog = (msg, ...args) => console.log(`[OmisellJobController.fetchAndSaveOrderDetails] - ${msg}`, ...args);
             clog('Start fetching order details');
-            const orders = await Order.find({ updated_time: { $gte: updatedTime } }, { omisell_order_number: 1 }).lean();
-            const orderNos = orders.map(o => o.omisell_order_number);
             let processed = 0;
-            const total = orderNos.length;
+            const total = omisell_order_numbers.length;
             clog(`Fetching order details for ${total} orders`);
             const chunk = (arr, size) => {
                 const out = [];
                 for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
                 return out;
             };
-            const batches = chunk(orderNos, 10);
+            const batches = chunk(omisell_order_numbers, 10);
             for (let bi = 0; bi < batches.length; bi++) {
                 const batch = batches[bi];
                 for (const orderNo of batch) {
@@ -199,9 +201,9 @@ function OmisellJobController() {
                 updatedTime = 0;
             }
             console.log(`[OmisellJobController.jobSaveOrders] - Job started with updatedTime: ${updatedTime}`);
-            await SELF.fetchAndSaveOrders(updatedTime);
-            await SELF.fetchAndSaveOrderDetails(updatedTime);
-            await MisaApiService.processNewOrders();
+            const omisell_order_numbers = await SELF.fetchAndSaveOrders(updatedTime);
+            await SELF.fetchAndSaveOrderDetails(omisell_order_numbers);
+            await MisaApiService.processNewOrders(omisell_order_numbers);
             // await SELF.fetchAndSaveOrderRevenues(updatedTime);
         },
         jobSavePickups: async () => {

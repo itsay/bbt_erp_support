@@ -665,11 +665,11 @@ function MisaApiService() {
         getToken: SELF.getToken,
         mapOmisellToCrmSaleOrder: SELF.mapOmisellToCrmSaleOrder,
         addCrmObjects: SELF.addCrmObjects,
-        processNewOrders: async () => {
+        processNewOrders: async (omisell_order_numbers) => {
             await SELF.loadConfig();
             const token = await SELF.getToken()
             const [docs, pickups] = await Promise.all([
-                Order.find({ misa_status: { $ne: StatusWebhook.SUCCESS } }).sort({ created_time: 1 }).lean(),
+                Order.find({ misa_status: { $ne: StatusWebhook.SUCCESS }, omisell_order_number: { $in: omisell_order_numbers } }).sort({ created_time: 1 }).lean(),
                 PickupList.find().lean(),
             ]);
             let success = 0, fail = 0;
@@ -717,7 +717,7 @@ function MisaApiService() {
                     );
                     success++;
                 } catch (err) {
-                    console.error(`Push FAIL | omisell_order_number=${orderNo} | error=${String(err)}`);
+                    console.error(`Push FAIL | omisell_order_number=${orderNo} | error=${JSON.stringify(err)}`);
                     await Order.updateOne(
                         { _id: doc._id },
                         { $set: { misa_status: StatusWebhook.FAILED, misa_response: { error: JSON.stringify(err) }, misa_sent_time: sentAt, misa_body: crmOrder } }
