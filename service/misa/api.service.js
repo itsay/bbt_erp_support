@@ -528,7 +528,7 @@ function MisaApiService() {
                 status: src?.status_name || '',
                 shipping_code: firstParcel.package_number || receiver.zip_code || '',
                 shipping_amount_summary,
-                delivery_status: firstParcel.shipment_status_name || String(firstParcel.shipment_status || ''),
+                delivery_status: src.delivery_status,
                 list_product,
                 amount_summary,
                 discount_summary,
@@ -1047,11 +1047,6 @@ function MisaApiService() {
 
                 crmOrder = SELF.mapOmisellToCrmSaleOrder(orderDetailDb, SELF.PICKUP_LIST);
 
-                console.log(`order ${omisell_order_number} orderDetailDb status:  orderDetailDb.status: ${orderDetailDb.status} - orderDetailDb.delivery_status: ${orderDetailDb.delivery_status} - webhook event: ${webhookData.event} `);
-
-                console.log(`order ${omisell_order_number} crmOrder status:  crmOrder.status: ${crmOrder.status} - crmOrder.delivery_status: ${crmOrder.delivery_status} - webhook event: ${webhookData.event} `);
-
-
                 const statusType = webhookData.event?.split('.')?.[0];
                 if (statusType === 'order') {
                     crmOrder.status = SELF.status[orderData?.status_id] || crmOrder.status;
@@ -1060,6 +1055,13 @@ function MisaApiService() {
                     crmOrder.delivery_status = SELF.delivery_status[orderData?.status_id] || crmOrder.delivery_status;
                     orderDetailDb.delivery_status = crmOrder.delivery_status;
                 }
+
+
+                console.log(`order ${omisell_order_number} orderDetailDb status:  orderDetailDb.status: ${orderDetailDb.status} - orderDetailDb.delivery_status: ${orderDetailDb.delivery_status} - webhook event: ${webhookData.event} `);
+
+                console.log(`order ${omisell_order_number} crmOrder status:  crmOrder.status: ${crmOrder.status} - crmOrder.delivery_status: ${crmOrder.delivery_status} - webhook event: ${webhookData.event} `);
+
+
                 updatePromises.push(
                     OrderDetail.updateOne(
                         { omisell_order_number: omisell_order_number },
