@@ -78,7 +78,7 @@ function WebhookController() {
                     if (success) {
                         await WebhookEvent.updateMany(query, { $set: { handle_status: StatusWebhookEnum.SUCCESS } })
                     } else {
-                        await WebhookEvent.updateMany(query, { $set: { handle_status: StatusWebhookEnum.FAILED, handle_error: lastError?.stack } })
+                        await WebhookEvent.updateMany(query, { $set: { handle_status: StatusWebhookEnum.FAILED, handle_error: lastError } })
                     }
                 }
             } catch (e) {
