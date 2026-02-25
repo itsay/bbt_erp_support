@@ -1127,7 +1127,7 @@ function MisaApiService() {
                         }
                     }
                 ).catch(e => clog('Failed to update FAIL status:', e));
-                return Promise.reject(err);
+                return Promise.reject(JSON.stringify(err));
             }
         }
     }
