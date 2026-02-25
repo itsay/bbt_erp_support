@@ -995,7 +995,6 @@ function MisaApiService() {
         /**
          * Xử lý đơn hàng mới theo data từ webhook
          * @param {Object} webhookData Data webhook
-         * @return {Promise<Number>} 1: thành công, 0: thất bại, 2: đang xử lý
          */
         processNewOrderFromWebhook: async (webhookData) => {
             const clog = (msg, ...args) => console.log(`[MisaApiService.processNewOrderFromWebhook] ${msg}`, ...args);

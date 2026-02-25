@@ -67,7 +67,7 @@ function WebhookController() {
                             success = true
                         } catch (e) {
                             lastError = e
-                            console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${attempt}/${MAX_RETRIES})`, e.stack)
+                            console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${attempt}/${MAX_RETRIES})`, e)
                         }
                         console.timeEnd(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
                         if (success) break

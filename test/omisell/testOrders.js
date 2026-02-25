@@ -34,8 +34,8 @@ mongoose.Promise = global.Promise;
 
 
 async function test() {
-    const data = await OmisellApiService.getOrderDetail('ODVN260212DD8873DE')
-    console.log(JSON.stringify(data, null, 2))
+    const data = await OmisellApiService.getToken()
+    console.log(data)
 }
 
 test()
