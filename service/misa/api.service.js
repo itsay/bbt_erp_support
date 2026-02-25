@@ -1068,12 +1068,17 @@ function MisaApiService() {
 
                 crmOrder = SELF.mapOmisellToCrmSaleOrder(orderDetailDb, SELF.PICKUP_LIST);
 
+                console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: before`, JSON.stringify(crmOrder));
+
                 const statusType = webhookData.event?.split('.')?.[0];
                 if (statusType === 'order') {
                     crmOrder.status = SELF.status[orderData?.status_id] || crmOrder.status;
                 } else if (statusType === 'shipment') {
                     crmOrder.delivery_status = SELF.delivery_status[orderData?.status_id] || crmOrder.delivery_status;
                 }
+
+                console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: after`, JSON.stringify(crmOrder));
+
 
                 clog(`Pushing order: ${omisell_order_number}`);
 
