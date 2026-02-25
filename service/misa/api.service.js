@@ -525,10 +525,10 @@ function MisaApiService() {
                 sale_order_no: src.order_number || null,
                 other_sys_order_code: src.omisell_order_number || null,
                 description: src.order_note || null,
-                status: src?.status || '',
+                status: src?.status || src?.status_name || '',
                 shipping_code: firstParcel.package_number || receiver.zip_code || '',
                 shipping_amount_summary,
-                delivery_status: src.delivery_status || '',
+                delivery_status: src?.delivery_status || firstParcel.shipment_status_name || String(firstParcel.shipment_status || ''),
                 list_product,
                 amount_summary,
                 discount_summary,
@@ -1101,8 +1101,6 @@ function MisaApiService() {
                 }
                 clog(`Push SUCCESS | omisell_order_number=${omisell_order_number} | misaId=${misaId}`);
 
-                console.log(`------------------------------`)
-                console.log(`[MisaApiService.processNewOrderFromWebhook] Order ${omisell_order_number} pushed to Misa successfully - crmOrder.status: ${crmOrder.status}, crmOrder.delivery_status: ${crmOrder.delivery_status}, webhook event: ${webhookData.event}, webhook status_id: ${webhookData?.status_id}, orderData status_id: ${orderData?.status_id}`);
 
                 await Order.updateOne(
                     { omisell_order_number: omisell_order_number },
