@@ -1017,7 +1017,7 @@ function MisaApiService() {
 
                 // Không có sẵn đơn hàng thì get lại từ API
                 let orderDetailDb = _orderDetailDb;
-                if (!orderDb || !orderDetailDb) {
+                if (!orderDb) {
                     clog(`Missing order or order detail for order: ${omisell_order_number}. Fetching from Omisell...`);
                     const orderDetailData = await OmisellApiService.getOrderDetail(omisell_order_number);
                     if (!orderDetailData?.data) {
@@ -1025,35 +1025,14 @@ function MisaApiService() {
                         return Promise.reject(new Error(`Cannot get order detail from Omisell for order: ${omisell_order_number}`));
                     }
                     orderDetailDb = orderDetailData.data;
-
                     const updatePromises = [];
-                    if (!orderDb) {
-                        updatePromises.push(
-                            Order.updateOne(
-                                { omisell_order_number: omisell_order_number },
-                                { $set: { ...orderData, misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt } },
-                                { upsert: true }
-                            )
-                        );
-                    } else {
-                        updatePromises.push(
-                            Order.updateOne(
-                                { omisell_order_number: omisell_order_number },
-                                { $set: { misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt } }
-                            )
-                        );
-                    }
-
-                    if (!_orderDetailDb) {
-                        updatePromises.push(
-                            OrderDetail.updateOne(
-                                { omisell_order_number: omisell_order_number },
-                                { $set: orderDetailData.data },
-                                { upsert: true }
-                            )
-                        );
-                    }
-                    await Promise.all(updatePromises);
+                    updatePromises.push(
+                        Order.updateOne(
+                            { omisell_order_number: omisell_order_number },
+                            { $set: { ...orderData, misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt } },
+                            { upsert: true }
+                        )
+                    );
                 } else {
                     // Cập nhật trạng thái xử lý misa của đơn hàng
                     await Order.updateOne(
@@ -1078,9 +1057,20 @@ function MisaApiService() {
                 const statusType = webhookData.event?.split('.')?.[0];
                 if (statusType === 'order') {
                     crmOrder.status = SELF.status[orderData?.status_id] || crmOrder.status;
+                    orderDetailDb.status = crmOrder.status
                 } else if (statusType === 'shipment') {
                     crmOrder.delivery_status = SELF.delivery_status[orderData?.status_id] || crmOrder.delivery_status;
+                    orderDetailDb.delivery_status = crmOrder.delivery_status;
                 }
+                updatePromises.push(
+                    OrderDetail.updateOne(
+                        { omisell_order_number: omisell_order_number },
+                        { $set: orderDetailDb },
+                        { upsert: true }
+                    )
+                );
+
+                await Promise.all(updatePromises);
 
                 console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: after - crmOrder.delivery_status: ${crmOrder.delivery_status} - crmOrder.status: ${crmOrder.status}`);
 
