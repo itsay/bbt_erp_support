@@ -989,7 +989,7 @@ function MisaApiService() {
                 await SELF.updateCrmObjects({ select: 'SaleOrders', items: [crmOrder], token, clientId: SELF.AMIS_CLIENT_ID, crmUrl: SELF.AMIS_CRM_URL })
             } catch (error) {
                 console.log(`[MisaApiService] - [testUpdateOrder] - fail: `, error.stack);
-                return Promise.reject(error);
+                return Promise.reject(error.stack);
             }
         },
         /**
