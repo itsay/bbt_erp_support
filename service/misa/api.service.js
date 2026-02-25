@@ -1068,7 +1068,7 @@ function MisaApiService() {
 
                 crmOrder = SELF.mapOmisellToCrmSaleOrder(orderDetailDb, SELF.PICKUP_LIST);
 
-                console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: before`, JSON.stringify(crmOrder));
+                console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: before`, crmOrder.delivery_status, crmOrder.status);
 
                 const statusType = webhookData.event?.split('.')?.[0];
                 if (statusType === 'order') {
@@ -1077,7 +1077,7 @@ function MisaApiService() {
                     crmOrder.delivery_status = SELF.delivery_status[orderData?.status_id] || crmOrder.delivery_status;
                 }
 
-                console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: after`, JSON.stringify(crmOrder));
+                console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: after`, crmOrder.delivery_status, crmOrder.status);
 
 
                 clog(`Pushing order: ${omisell_order_number}`);
