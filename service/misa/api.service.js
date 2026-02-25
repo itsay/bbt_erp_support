@@ -1086,8 +1086,6 @@ function MisaApiService() {
 
                 console.log(`-------------------`)
 
-
-
                 clog(`Pushing order: ${omisell_order_number}`);
 
                 // Có misa_id trong db -> đã push -> update
@@ -1112,6 +1110,9 @@ function MisaApiService() {
                     console.timeEnd(`[MisaApiService.processNewOrderFromWebhook] - addCrmObjects ${omisell_order_number}`)
                 }
                 clog(`Push SUCCESS | omisell_order_number=${omisell_order_number} | misaId=${misaId}`);
+
+                console.log(`------------------------------`)
+                console.log(`[MisaApiService.processNewOrderFromWebhook] Order ${omisell_order_number} pushed to Misa successfully`, crmOrder.status, crmOrder.delivery_status);
 
                 await Order.updateOne(
                     { omisell_order_number: omisell_order_number },
