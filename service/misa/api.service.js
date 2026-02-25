@@ -1017,6 +1017,7 @@ function MisaApiService() {
 
                 // Không có sẵn đơn hàng thì get lại từ API
                 let orderDetailDb = _orderDetailDb;
+                const updatePromises = [];
                 if (!orderDb) {
                     clog(`Missing order or order detail for order: ${omisell_order_number}. Fetching from Omisell...`);
                     const orderDetailData = await OmisellApiService.getOrderDetail(omisell_order_number);
@@ -1025,7 +1026,6 @@ function MisaApiService() {
                         return Promise.reject(new Error(`Cannot get order detail from Omisell for order: ${omisell_order_number}`));
                     }
                     orderDetailDb = orderDetailData.data;
-                    const updatePromises = [];
                     updatePromises.push(
                         Order.updateOne(
                             { omisell_order_number: omisell_order_number },
