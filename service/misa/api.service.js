@@ -1070,9 +1070,10 @@ function MisaApiService() {
 
                 console.log(`-------------------`)
 
-                console.log(`[MisaApiService.processNewOrderFromWebhook] Event ${omisell_order_number}`, JSON.stringify(webhookData));
-
-                console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: before`, crmOrder.delivery_status, crmOrder.status);
+                console.log(`[MisaApiService.processNewOrderFromWebhook] Event type ${omisell_order_number}`, webhookData.event);
+                console.log(`[MisaApiService.processNewOrderFromWebhook] Event status_id ${omisell_order_number}`, webhookData?.status_id);
+                console.log(`[MisaApiService.processNewOrderFromWebhook] OrderData status_id ${omisell_order_number}`, orderData?.status_id);
+                console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: before - crmOrder.delivery_status: ${crmOrder.delivery_status} - crmOrder.status: ${crmOrder.status}`);
 
                 const statusType = webhookData.event?.split('.')?.[0];
                 if (statusType === 'order') {
@@ -1081,7 +1082,7 @@ function MisaApiService() {
                     crmOrder.delivery_status = SELF.delivery_status[orderData?.status_id] || crmOrder.delivery_status;
                 }
 
-                console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: after`, crmOrder.delivery_status, crmOrder.status);
+                console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: after - crmOrder.delivery_status: ${crmOrder.delivery_status} - crmOrder.status: ${crmOrder.status}`);
 
                 console.log(`-------------------`)
 
