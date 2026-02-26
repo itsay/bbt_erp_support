@@ -717,6 +717,7 @@ function MisaApiService() {
                     );
                     success++;
                 } catch (err) {
+                    console.error(err);
                     console.error(`Push FAIL | omisell_order_number=${orderNo} | error=${JSON.stringify(err)}`);
                     await Order.updateOne(
                         { _id: doc._id },
