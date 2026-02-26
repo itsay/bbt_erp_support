@@ -996,8 +996,9 @@ function MisaApiService() {
         /**
          * Xử lý đơn hàng mới theo data từ webhook
          * @param {Object} webhookData Data webhook
+         * @param {Boolean} regetDetail Có get lại detail từ Omisell nếu không có sẵn trong DB hay không. Mặc định là false để tránh việc bị gọi API nhiều lần khi có nhiều webhook liên tiếp cho cùng 1 đơn hàng. Chỉ nên set true khi chắc chắn cần dữ liệu mới nhất từ Omisell (ví dụ như khi xử lý webhook có event liên quan đến thay đổi thông tin đơn hàng)
          */
-        processNewOrderFromWebhook: async (webhookData) => {
+        processNewOrderFromWebhook: async (webhookData, regetDetail = false) => {
             const clog = (msg, ...args) => console.log(`[MisaApiService.processNewOrderFromWebhook] ${msg}`, ...args);
             const orderData = webhookData.data;
             // Validate input
@@ -1019,7 +1020,7 @@ function MisaApiService() {
                 // Không có sẵn đơn hàng thì get lại từ API
                 let orderDetailDb = _orderDetailDb;
                 const updatePromises = [];
-                if (!orderDb) {
+                if (!orderDb || regetDetail) {
                     clog(`Missing order or order detail for order: ${omisell_order_number}. Fetching from Omisell...`);
                     const orderDetailData = await OmisellApiService.getOrderDetail(omisell_order_number);
                     if (!orderDetailData?.data) {
