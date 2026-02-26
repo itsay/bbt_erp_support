@@ -1115,7 +1115,7 @@ function MisaApiService() {
                 );
                 return Promise.resolve();
             } catch (err) {
-                clog(`Push FAIL | omisell_order_number=${omisell_order_number} | error=${JSON.stringify(err)}`);
+                clog(`Push FAIL | omisell_order_number=${omisell_order_number} | error=${JSON.stringify(err)} || error=${err.stack}`);
                 await Order.updateOne(
                     { omisell_order_number },
                     {
