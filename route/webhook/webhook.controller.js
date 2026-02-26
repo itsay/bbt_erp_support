@@ -73,7 +73,7 @@ function WebhookController() {
                         if (success) break
                     }
                     const query = data.orderNo
-                        ? { order_number: data.orderNo, handle_status: StatusWebhookEnum.PENDING }
+                        ? { order_number: data.orderNo, receivedAt: { $lte: data.receivedAt } }
                         : { _id: data._id };
                     if (success) {
                         await WebhookEvent.updateMany(query, { $set: { handle_status: StatusWebhookEnum.SUCCESS } })
