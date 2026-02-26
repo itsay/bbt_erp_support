@@ -674,39 +674,58 @@ function MisaApiService() {
                 const doc = docs[i];
                 const orderNo = doc.omisell_order_number || doc.order_number;
                 const sentAt = new Date();
-                await Order.updateOne(
-                    { _id: doc._id },
-                    { $set: { misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt } }
-                );
-                let detailDoc = await OrderDetail.findOne({ omisell_order_number: orderNo });
-                if (!detailDoc || !detailDoc?.created_time) {
-                    // Lấy lại order detail
-                    console.log(`No detail found for order ${orderNo}`);
-                    let detail = await OmisellApiService.getOrderDetail(orderNo);
-                    if (detail?.data?.retry_after) {
-                        console.log('wait after', detail?.data?.retry_after);
-                        await Util.sleep(Number(detail.data.retry_after) + 1);
-                        detail = await OmisellApiService.getOrderDetail(orderNo);
-                    }
-                    console.log('Get details for ', orderNo)
-                    await OrderDetail.updateOne(
-                        { omisell_order_number: orderNo },
-                        { $set: { omisell_order_number: orderNo, ...detail?.data, fetchedAt: new Date() } },
-                        { upsert: true }
-                    );
-                    detailDoc = await OrderDetail.findOne({ omisell_order_number: orderNo });
-                }
-                const source = detailDoc || doc;
-                let crmOrder
+                let crmOrder;
                 try {
+                    await Order.updateOne(
+                        { _id: doc._id },
+                        { $set: { misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt } }
+                    );
+
+                    let detailDoc = await OrderDetail.findOne({ omisell_order_number: orderNo });
+                    if (!detailDoc || !detailDoc?.created_time) {
+                        // Lấy lại order detail
+                        console.log(`No detail found for order ${orderNo}`);
+                        let detail = await OmisellApiService.getOrderDetail(orderNo);
+                        if (detail?.data?.retry_after) {
+                            console.log('wait after', detail?.data?.retry_after);
+                            await Util.sleep(Number(detail.data.retry_after) + 1);
+                            detail = await OmisellApiService.getOrderDetail(orderNo);
+                        }
+                        if (!detail?.data) {
+                            throw new Error(`Cannot get order detail from Omisell for order: ${orderNo}`);
+                        }
+                        console.log('Get details for ', orderNo)
+                        await OrderDetail.updateOne(
+                            { omisell_order_number: orderNo },
+                            { $set: { omisell_order_number: orderNo, ...detail.data, fetchedAt: new Date() } },
+                            { upsert: true }
+                        );
+                        detailDoc = await OrderDetail.findOne({ omisell_order_number: orderNo });
+                    }
+
+                    const source = detailDoc || doc;
                     crmOrder = SELF.mapOmisellToCrmSaleOrder(source, SELF.PICKUP_LIST);
-                    const misaId = await SELF.addCrmObjects({
-                        select: 'SaleOrders',
-                        items: [crmOrder],
-                        token,
-                        clientId: SELF.AMIS_CLIENT_ID,
-                        crmUrl: SELF.AMIS_CRM_URL
-                    });
+                    let misaId;
+                    if (doc?.misa_id) {
+                        crmOrder.id = doc.misa_id;
+                        await SELF.updateCrmObjects({
+                            select: 'SaleOrders',
+                            items: [crmOrder],
+                            token,
+                            clientId: SELF.AMIS_CLIENT_ID,
+                            crmUrl: SELF.AMIS_CRM_URL
+                        });
+                        misaId = doc.misa_id;
+                    } else {
+                        misaId = await SELF.addCrmObjects({
+                            select: 'SaleOrders',
+                            items: [crmOrder],
+                            token,
+                            clientId: SELF.AMIS_CLIENT_ID,
+                            crmUrl: SELF.AMIS_CRM_URL
+                        });
+                    }
+
                     console.log(`Push SUCCESS | omisell_order_number=${orderNo} | misaId=${misaId}`);
                     await Order.updateOne(
                         { _id: doc._id },
@@ -716,10 +735,11 @@ function MisaApiService() {
                 } catch (err) {
                     console.error(err);
                     console.error(`Push FAIL | omisell_order_number=${orderNo} | error=${JSON.stringify(err)}`);
+                    fail++;
                     await Order.updateOne(
                         { _id: doc._id },
                         { $set: { misa_status: StatusWebhook.FAILED, misa_response: { error: JSON.stringify(err) }, misa_sent_time: sentAt, misa_body: crmOrder } }
-                    );
+                    ).catch((updateErr) => console.error(`Failed to update FAIL status | omisell_order_number=${orderNo} | error=${updateErr?.stack || updateErr}`));
                 }
                 if ((i + 1) % 10 === 0) {
                     console.log(`Pushed ${i + 1}/${docs.length} orders to MISA | success=${success} fail=${fail}`);
