@@ -668,10 +668,7 @@ function MisaApiService() {
         processNewOrders: async (omisell_order_numbers) => {
             await SELF.loadConfig();
             const token = await SELF.getToken()
-            const [docs, pickups] = await Promise.all([
-                Order.find({ misa_status: { $ne: StatusWebhook.SUCCESS }, omisell_order_number: { $in: omisell_order_numbers } }).sort({ created_time: 1 }).lean(),
-                PickupList.find().lean(),
-            ]);
+            const docs = await Order.find({ misa_status: { $ne: StatusWebhook.SUCCESS }, omisell_order_number: { $in: omisell_order_numbers } }).sort({ created_time: 1 }).lean()
             let success = 0, fail = 0;
             for (let i = 0; i < docs.length; i++) {
                 const doc = docs[i];
@@ -702,7 +699,7 @@ function MisaApiService() {
                 const source = detailDoc || doc;
                 let crmOrder
                 try {
-                    crmOrder = SELF.mapOmisellToCrmSaleOrder(source, pickups);
+                    crmOrder = SELF.mapOmisellToCrmSaleOrder(source, SELF.PICKUP_LIST);
                     const misaId = await SELF.addCrmObjects({
                         select: 'SaleOrders',
                         items: [crmOrder],
@@ -1129,7 +1126,7 @@ function MisaApiService() {
                         }
                     }
                 ).catch(e => clog('Failed to update FAIL status:', e));
-                return Promise.reject(JSON.stringify(err));
+                return Promise.reject(err);
             }
         }
     }
