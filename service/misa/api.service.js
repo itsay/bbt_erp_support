@@ -1028,7 +1028,7 @@ function MisaApiService() {
             console.log(`Processing webhook for order: ${omisell_order_number} | event: ${JSON.stringify(webhookData)}`);
             let crmOrder;
             try {
-                const [token, orderDb, _orderDetailDb] = await Promise.all([
+                const [token, _orderDb, _orderDetailDb] = await Promise.all([
                     SELF.getToken(),
                     Order.findOne({ omisell_order_number: omisell_order_number }).lean(),
                     OrderDetail.findOne({ omisell_order_number: omisell_order_number }).lean()
@@ -1036,8 +1036,9 @@ function MisaApiService() {
 
                 // Không có sẵn đơn hàng thì get lại từ API
                 let orderDetailDb = _orderDetailDb;
+                let orderDb = _orderDb;
                 const updatePromises = [];
-                if (!orderDb || regetDetail) {
+                if (!orderDb || regetDetail || !orderDetailDb) {
                     clog(`Missing order or order detail for order: ${omisell_order_number}. Fetching from Omisell...`);
                     const orderDetailData = await OmisellApiService.getOrderDetail(omisell_order_number);
                     if (!orderDetailData?.data) {
@@ -1045,6 +1046,7 @@ function MisaApiService() {
                         return Promise.reject(new Error(`Cannot get order detail from Omisell for order: ${omisell_order_number}`));
                     }
                     orderDetailDb = orderDetailData.data;
+                    orderDb = orderData
                     updatePromises.push(
                         Order.updateOne(
                             { omisell_order_number: omisell_order_number },
