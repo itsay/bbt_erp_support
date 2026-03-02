@@ -64,22 +64,22 @@ function WebhookController() {
                     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
                         console.time(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
                         try {
-                            await MisaApiService.processNewOrderFromWebhook(data)
+                            await MisaApiService.processNewOrderFromWebhook(data, Number(lastError?.code) === 400 && attempt === 2)
                             success = true
                         } catch (e) {
                             lastError = e
-                            console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${attempt}/${MAX_RETRIES})`, e.stack)
+                            console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${attempt}/${MAX_RETRIES})`, JSON.stringify(e))
                         }
                         console.timeEnd(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
                         if (success) break
                     }
                     const query = data.orderNo
-                        ? { order_number: data.orderNo, handle_status: StatusWebhookEnum.PENDING }
+                        ? { order_number: data.orderNo, receivedAt: { $lte: data.receivedAt } }
                         : { _id: data._id };
                     if (success) {
                         await WebhookEvent.updateMany(query, { $set: { handle_status: StatusWebhookEnum.SUCCESS } })
                     } else {
-                        await WebhookEvent.updateMany(query, { $set: { handle_status: StatusWebhookEnum.FAILED, handle_error: lastError?.stack } })
+                        await WebhookEvent.updateMany(query, { $set: { handle_status: StatusWebhookEnum.FAILED, handle_error: lastError } })
                     }
                 }
             } catch (e) {
