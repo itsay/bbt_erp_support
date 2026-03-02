@@ -31,7 +31,7 @@ const JOB_DEFINITIONS = [
     {
         job: '*/1 * * * *',
         func: WebhookController.jobProcessNewOrders,
-        args: [20],
+        args: [100],
     },
 ]
 

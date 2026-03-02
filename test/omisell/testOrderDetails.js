@@ -31,15 +31,10 @@ mongoose.connect(
     }
 )
 
-async function RegetOrderDetail() {
-    const orders = await
-}
-
-
 async function test() {
-    await MisaApiService.test()
+    // await MisaApiService.test()
 
     // await OmisellJobController.jobSaveOrders(1769878800)
-    // const res = await OmisellApiService.getOrderDetail('OV2602051DB22804')
-    // console.log(res)
+    const res = await OmisellApiService.getOrderDetail('ODVN26022177ECFEBF')
+    console.log(JSON.stringify(res))
 }
