@@ -7,11 +7,12 @@ function WebhookController() {
     return {
         receiveWebhook: async (req, res) => {
             console.log(`[receiveWebhook] - payload: ${JSON.stringify(req.body)}`);
+            const event = req.body.event?.split('.')?.[0];
             WebhookEvent.create({
                 ...req.body,
                 ...req.body.data,
                 receivedAt: new Date(),
-                handle_status: StatusWebhookEnum.PENDING,
+                handle_status: event === 'order_return' ? StatusWebhookEnum.RETURN_ORDER_BLOCKED : StatusWebhookEnum.PENDING,
             }).catch((err) => {
                 console.log(`[receiveWebhook] - saveTracking - fail: `, err.stack);
             })
