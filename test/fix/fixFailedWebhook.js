@@ -4,6 +4,7 @@ const MisaApiService = require("../../service/misa/api.service");
 const { WebhookEvent } = require('../../model/omisell')
 const fs = require('fs');
 const path = require('path');
+const omisell = require("../../model/omisell");
 
 
 
@@ -75,9 +76,21 @@ async function test() {
             );
 
             retriedSuccessOrders.push(omisellOrderNumber);
+            await WebhookEvent.updateMany(
+                {
+                    omisell_order_number: omisellOrderNumber,
+                },
+                { $set: { handle_status: 'SUCCESS' } }
+            )
             console.log(`Retry SUCCESS for order: ${omisellOrderNumber}`);
         } catch (error) {
             retriedFailedOrders.push(omisellOrderNumber);
+            await WebhookEvent.updateMany(
+                {
+                    omisell_order_number: omisellOrderNumber,
+                },
+                { $set: { handle_status: 'FAILED' } }
+            )
             console.log(`Retry FAILED for order ${omisellOrderNumber}:`, error.message);
         }
     }
