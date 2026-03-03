@@ -93,13 +93,21 @@ function OmisellApiService() {
          * @returns {Promise<Array>} Array of orders
          */
         getOrders: async (params = {}) => {
-            try {
-                const base = `${SELF.config.baseUrl}/api/v2/public/order/list`;
-                const qs = SELF.buildQuery(params);
-                const url = qs ? `${base}?${qs}` : base;
-                return await SELF.requestOmiWithAuth(url, { method: 'GET' });
-            } catch (error) {
-                console.error('Get orders failed:', error.message);
+            const maxRetries = 3;
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    const base = `${SELF.config.baseUrl}/api/v2/public/order/list`;
+                    const qs = SELF.buildQuery(params);
+                    const url = qs ? `${base}?${qs}` : base;
+                    return await SELF.requestOmiWithAuth(url, { method: 'GET' });
+                } catch (error) {
+                    console.log(`Get orders failed (attempt ${attempt}/${maxRetries}):`, error.message);
+                    if (attempt < maxRetries && error?.data?.retry_after) {
+                        await Util.sleep(error.data.retry_after);
+                    } else if (attempt === maxRetries) {
+                        throw error;
+                    }
+                }
             }
         },
         /**
@@ -114,7 +122,7 @@ function OmisellApiService() {
                     const url = `${SELF.config.baseUrl}/api/v2/public/order/${encodeURIComponent(omisellOrderNumber)}`;
                     return await SELF.requestOmiWithAuth(url, { method: 'GET', redirect: 'follow' });
                 } catch (error) {
-                    console.error(`Get order detail failed (attempt ${attempt}/${maxRetries}):`, error.message);
+                    console.log(`Get order detail failed (attempt ${attempt}/${maxRetries}):`, error.message);
                     if (attempt < maxRetries && error?.data?.retry_after) {
                         await Util.sleep(error.data.retry_after);
                     } else {
