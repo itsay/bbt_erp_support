@@ -34,7 +34,7 @@ mongoose.connect(
 
 
 async function test() {
-    const failedWebhookData = await WebhookEvent.find({ status: 'FAILED' }).lean();
+    const failedWebhookData = await WebhookEvent.find({ handle_status: 'FAILED' }).lean();
     const uniqueOmisellOrderNumbers = [
         ...new Set(
             failedWebhookData
@@ -58,8 +58,8 @@ async function test() {
 
             if (!newestWebHookEvent) {
                 console.log(`No webhook event found for order: ${omisellOrderNumber}`);
-                retriedFailedOrders.push(omisellOrderNumber);
-                continue;
+                retriedFailedOrders.push(omisellOrdeNumber);
+                continue; r
             }
 
             console.log(`Processing order: ${omisellOrderNumber}`);
@@ -69,10 +69,9 @@ async function test() {
                 {
                     $or: [
                         { omisell_order_number: omisellOrderNumber },
-                        { 'data.omisell_order_number': omisellOrderNumber }
                     ]
                 },
-                { $set: { status: 'SUCCESS', retried_at: new Date() } }
+                { $set: { handle_status: 'SUCCESS' } }
             );
 
             retriedSuccessOrders.push(omisellOrderNumber);
