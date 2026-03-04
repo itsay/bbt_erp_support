@@ -122,7 +122,7 @@ function OmisellApiService() {
                     const url = `${SELF.config.baseUrl}/api/v2/public/order/${encodeURIComponent(omisellOrderNumber)}`;
                     return await SELF.requestOmiWithAuth(url, { method: 'GET', redirect: 'follow' });
                 } catch (error) {
-                    console.log(`Get order detail failed (attempt ${attempt}/${maxRetries}):`, error.message);
+                    console.log(`Get order detail failed (attempt ${attempt}/${maxRetries}):`, JSON.stringify(error) || error || error.message);
                     if (attempt < maxRetries && error?.data?.retry_after) {
                         await Util.sleep(error.data.retry_after);
                     } else {
