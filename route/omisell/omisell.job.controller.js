@@ -76,26 +76,30 @@ function OmisellJobController() {
             for (let bi = 0; bi < batches.length; bi++) {
                 const batch = batches[bi];
                 for (const orderNo of batch) {
-                    let detail = await OmisellApiService.getOrderDetail(orderNo);
-                    if (detail?.data?.retry_after) {
-                        clog('wait after', detail?.data?.retry_after);
-                        await Util.sleep(Number(detail.data.retry_after) + 1);
-                        detail = await OmisellApiService.getOrderDetail(orderNo);
+                    try {
+                        let detail = await OmisellApiService.getOrderDetail(orderNo);
+                        if (detail?.data?.retry_after) {
+                            clog('wait after', detail?.data?.retry_after);
+                            await Util.sleep(Number(detail.data.retry_after) + 1);
+                            detail = await OmisellApiService.getOrderDetail(orderNo);
+                        }
+                        await OrderDetail.updateOne(
+                            { omisell_order_number: orderNo },
+                            { $set: { omisell_order_number: orderNo, ...detail?.data, fetchedAt: new Date() } },
+                            { upsert: true }
+                        );
+                        clog(`Total invetory item ${orderNo}: ${detail?.data.parcels?.[0].inventory_items?.length || 0}`);
+                        processed++;
+                        if (processed % 50 === 0) clog(`Order details processed: ${processed}/${total}`);
+                    } catch (error) {
+                        clog(`Failed to fetch/save order detail for ${orderNo}: ${error}`);
                     }
-                    await OrderDetail.updateOne(
-                        { omisell_order_number: orderNo },
-                        { $set: { omisell_order_number: orderNo, ...detail?.data, fetchedAt: new Date() } },
-                        { upsert: true }
-                    );
-                    clog(`Total invetory item ${orderNo}: ${detail?.data.parcels?.[0].inventory_items?.length || 0}`);
-                    processed++;
-                    if (processed % 50 === 0) clog(`Order details processed: ${processed}/${total}`);
+                    if (bi < batches.length - 1) {
+                        await Util.sleep(2);
+                    }
                 }
-                if (bi < batches.length - 1) {
-                    await Util.sleep(2);
-                }
+                clog(`Total order details saved: ${processed}/${total}`);
             }
-            clog(`Total order details saved: ${processed}/${total}`);
         },
         fetchAndSaveOrderRevenues: async (updatedFrom) => {
             const clog = (msg, ...args) => console.log(`[OmisellJobController.fetchAndSaveOrderRevenues] - ${msg}`, ...args);

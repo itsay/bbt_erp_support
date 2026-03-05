@@ -50,7 +50,7 @@ function SchedulerService() {
                         await job.func(...job.args);
                         console.log(`Job ${job.func.name} ends`)
                     } catch (error) {
-                        console.log(`Job ${job.func.name} failed: ${error.message}`);
+                        console.log(`Job ${job.func.name} failed: ${error}`);
                     }
                 }, null, true, 'Asia/Ho_Chi_Minh');
                 cronJob.start();

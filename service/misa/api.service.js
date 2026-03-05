@@ -704,10 +704,10 @@ function MisaApiService() {
                         );
                         detailDoc = await OrderDetail.findOne({ omisell_order_number: orderNo });
                     }
-
                     const source = detailDoc || doc;
                     crmOrder = SELF.mapOmisellToCrmSaleOrder(source, SELF.PICKUP_LIST);
                     let misaId;
+                    console.log('[MisaApiService] - [processNewOrders] - orderNo:', orderNo, 'misaId', doc?.misa_id);
                     if (doc?.misa_id) {
                         crmOrder.id = doc.misa_id;
                         await SELF.updateCrmObjects({
