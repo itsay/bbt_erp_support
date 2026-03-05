@@ -668,9 +668,15 @@ function MisaApiService() {
         processNewOrders: async (omisell_order_numbers) => {
             await SELF.loadConfig();
             const [token, docs] = await Promise.all(
-                [SELF.getToken(),
-                Order.find({ misa_status: { $ne: StatusWebhook.SUCCESS }, omisell_order_number: { $in: omisell_order_numbers } }).sort({ created_time: 1 }).lean()
-                ]);
+                [
+                    SELF.getToken(),
+                    Order.find({ misa_status: { $ne: StatusWebhook.SUCCESS }, omisell_order_number: { $in: omisell_order_numbers } }).sort({ created_time: 1 }).lean(),
+                ]
+            );
+            await Order.update(
+                { omisell_order_number: { $in: omisell_order_numbers } },
+                { $set: { misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt } }
+            )
             let success = 0, fail = 0;
             for (let i = 0; i < docs.length; i++) {
                 const doc = docs[i];
@@ -678,11 +684,6 @@ function MisaApiService() {
                 const sentAt = new Date();
                 let crmOrder;
                 try {
-                    await Order.updateOne(
-                        { _id: doc._id },
-                        { $set: { misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt } }
-                    );
-
                     let detailDoc = await OrderDetail.findOne({ omisell_order_number: orderNo });
                     if (!detailDoc || !detailDoc?.created_time) {
                         // Lấy lại order detail
