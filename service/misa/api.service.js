@@ -667,8 +667,10 @@ function MisaApiService() {
         addCrmObjects: SELF.addCrmObjects,
         processNewOrders: async (omisell_order_numbers) => {
             await SELF.loadConfig();
-            const token = await SELF.getToken()
-            const docs = await Order.find({ misa_status: { $ne: StatusWebhook.SUCCESS }, omisell_order_number: { $in: omisell_order_numbers } }).sort({ created_time: 1 }).lean()
+            const [token, docs] = await Promise.all(
+                [SELF.getToken(),
+                Order.find({ misa_status: { $ne: StatusWebhook.SUCCESS }, omisell_order_number: { $in: omisell_order_numbers } }).sort({ created_time: 1 }).lean()
+                ]);
             let success = 0, fail = 0;
             for (let i = 0; i < docs.length; i++) {
                 const doc = docs[i];
