@@ -383,7 +383,7 @@ function MisaApiService() {
         },
         toIso: (ts) => {
             if (!ts || ts <= 0) return null;
-            return new Date(ts * 1000).toISOString();
+            return new Date(ts * 1000).toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"});
         },
         mapOmisellToCrmSaleOrder: (src, pickups = []) => {
             const clog = (msg, ...args) => console.log(`[MisaApiService.mapOmisellToCrmSaleOrder] ${msg}`, ...args);
@@ -415,9 +415,10 @@ function MisaApiService() {
             /**Payment info */
             const paymentInfo = Array.isArray(src.payment_information) ? src.payment_information : [];
 
-            const sale_order_date = paymentInfo.length
-                ? new Date(Number(paymentInfo[0].transaction_time || 0) * 1000).toISOString().slice(0, 10)
-                : null;
+            const paid_date = paymentInfo.length
+                ? new Date(Number(paymentInfo[0].transaction_time) * 1000)
+                    .toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' })
+                 : null;
             const mappedAccountName = getAccountName(src.platform, src.shop_id);
 
             const pickupInfo = firstParcel?.pickup_id ? pickups.find(p => p.id === firstParcel.pickup_id) || {} : {};
@@ -535,8 +536,8 @@ function MisaApiService() {
                 pay_status: paymentInfo[0].transaction_status_name || '',
                 sale_order_amount: Number(sale_order_amount.toFixed(4)),
                 total_summary: Number(sale_order_amount.toFixed(4)),
-                sale_order_date,
-                paid_date: sale_order_date,
+                sale_order_date: SELF.toIso(src.created_time || 0),
+                paid_date,
                 billing_account: mappedAccountName || invoice.fullname || '',
                 billing_contact: '',
                 billing_address: invoice.address || '',
@@ -554,6 +555,7 @@ function MisaApiService() {
                 shipping_country: 'Việt Nam',
                 discount_overall: discount_summary,
                 delivery_date: SELF.toIso(src.shipped_time || 0),
+                custom_field24: SELF.toIso(src.completed_time || 0),
                 form_layout: "Đơn hàng Omisell",
                 sale_order_type: SELF.sale_order_type[src.order_type] || SELF.sale_order_type.sample,
                 sale_order_product_mappings,
@@ -880,6 +882,7 @@ function MisaApiService() {
                     "shipping_country": "Việt Nam",
                     "discount_overall": 0,
                     "delivery_date": "2026-02-06T04:52:26.000Z",
+                    "custom_field24": "2026-02-07T04:52:26.000Z",
                     "form_layout": "Đơn hàng Omisell",
                     "sale_order_type": "Đơn hàng Omisell",
                     "sale_order_product_mappings": [
