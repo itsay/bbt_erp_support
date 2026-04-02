@@ -65,7 +65,11 @@ function WebhookController() {
                     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
                         console.time(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
                         try {
-                            await MisaApiService.processNewOrderFromWebhook(data, Number(lastError?.code) === 400 && attempt === 2)
+                            const type = data.event?.split('.')?.[0];
+                            const action = data.event?.split('.')?.[1];
+                            const shouldRegetDetail = type === 'order' && action === 'completed';
+                            const retryRegetDetail = Number(lastError?.code) === 400 && attempt === 2;
+                            await MisaApiService.processNewOrderFromWebhook(data, shouldRegetDetail || retryRegetDetail)
                             success = true
                         } catch (e) {
                             lastError = e
