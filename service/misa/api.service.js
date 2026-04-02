@@ -1107,6 +1107,14 @@ function MisaApiService() {
 
                 // Có misa_id trong db -> đã push -> update
                 let misaId;
+                const isDuplicateSaleOrderError = (err) => {
+                    const validateInfos = err?.results?.[0]?.validate_infos;
+                    if (!Array.isArray(validateInfos)) return false;
+                    return validateInfos.some((info) => {
+                        const fieldName = String(info?.field_name || '').toLowerCase();
+                        return fieldName === 'sale_order_no' || fieldName === 'other_sys_order_code';
+                    });
+                };
                 if (orderDb?.misa_id) {
                     clog(`Order pushed to misa. Update order: ${omisell_order_number}`);
                     crmOrder.id = orderDb.misa_id;
@@ -1117,13 +1125,30 @@ function MisaApiService() {
 
                 } else {
                     console.time(`[MisaApiService.processNewOrderFromWebhook] - addCrmObjects ${omisell_order_number}`)
-                    misaId = await SELF.addCrmObjects({
-                        select: 'SaleOrders',
-                        items: [crmOrder],
-                        token,
-                        clientId: SELF.AMIS_CLIENT_ID,
-                        crmUrl: SELF.AMIS_CRM_URL
-                    })
+                    try {
+                        misaId = await SELF.addCrmObjects({
+                            select: 'SaleOrders',
+                            items: [crmOrder],
+                            token,
+                            clientId: SELF.AMIS_CLIENT_ID,
+                            crmUrl: SELF.AMIS_CRM_URL
+                        })
+                    } catch (addErr) {
+                        // Nếu trùng số đơn hàng/mã đơn hệ thống khác thì coi như bản ghi đã tồn tại trên MISA
+                        // và chuyển sang update để tránh fail lặp lại ở các webhook tiếp theo.
+                        if (!isDuplicateSaleOrderError(addErr)) {
+                            throw addErr;
+                        }
+                        clog(`Duplicate sale order detected. Fallback update order: ${omisell_order_number}`);
+                        const updateResult = await SELF.updateCrmObjects({
+                            select: 'SaleOrders',
+                            items: [crmOrder],
+                            token,
+                            clientId: SELF.AMIS_CLIENT_ID,
+                            crmUrl: SELF.AMIS_CRM_URL
+                        });
+                        misaId = updateResult || orderDb?.misa_id;
+                    }
                     console.timeEnd(`[MisaApiService.processNewOrderFromWebhook] - addCrmObjects ${omisell_order_number}`)
                 }
                 clog(`Push SUCCESS | omisell_order_number=${omisell_order_number} | misaId=${misaId}`);
