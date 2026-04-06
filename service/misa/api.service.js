@@ -383,7 +383,7 @@ function MisaApiService() {
         },
         toIso: (ts) => {
             if (!ts || ts <= 0) return null;
-            return new Date(ts * 1000).toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"});
+            return new Date(ts * 1000).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
         },
         mapOmisellToCrmSaleOrder: (src, pickups = []) => {
             const clog = (msg, ...args) => console.log(`[MisaApiService.mapOmisellToCrmSaleOrder] ${msg}`, ...args);
@@ -418,7 +418,7 @@ function MisaApiService() {
             const paid_date = paymentInfo.length
                 ? new Date(Number(paymentInfo[0].transaction_time) * 1000)
                     .toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' })
-                 : null;
+                : null;
             const mappedAccountName = getAccountName(src.platform, src.shop_id);
 
             const pickupInfo = firstParcel?.pickup_id ? pickups.find(p => p.id === firstParcel.pickup_id) || {} : {};
@@ -1031,7 +1031,6 @@ function MisaApiService() {
             }
             const omisell_order_number = orderData.omisell_order_number;
             const sentAt = new Date();
-            console.log(`Processing webhook for order: ${omisell_order_number} | event: ${JSON.stringify(webhookData)}`);
             let crmOrder;
             try {
                 const [token, _orderDb, _orderDetailDb] = await Promise.all([
@@ -1082,13 +1081,6 @@ function MisaApiService() {
                     crmOrder.delivery_status = SELF.delivery_status[orderData?.status_id] || crmOrder.delivery_status;
                     orderDetailDb.delivery_status = crmOrder.delivery_status;
                 }
-
-
-                console.log(`order ${omisell_order_number} orderDetailDb status:  orderDetailDb.status: ${orderDetailDb.status} - orderDetailDb.delivery_status: ${orderDetailDb.delivery_status} - webhook event: ${webhookData.event} `);
-
-                console.log(`order ${omisell_order_number} crmOrder status:  crmOrder.status: ${crmOrder.status} - crmOrder.delivery_status: ${crmOrder.delivery_status} - webhook event: ${webhookData.event} `);
-
-
                 updatePromises.push(
                     OrderDetail.updateOne(
                         { omisell_order_number: omisell_order_number },
@@ -1096,15 +1088,8 @@ function MisaApiService() {
                         { upsert: true }
                     )
                 );
-
                 await Promise.all(updatePromises);
-
-                console.log(`[MisaApiService.processNewOrderFromWebhook] Mapped CRM order ${omisell_order_number}: after - crmOrder.delivery_status: ${crmOrder.delivery_status} - crmOrder.status: ${crmOrder.status}`);
-
-                console.log(`-------------------`)
-
                 clog(`Pushing order: ${omisell_order_number}`);
-
                 // Có misa_id trong db -> đã push -> update
                 let misaId;
                 const isDuplicateSaleOrderError = (err) => {
@@ -1119,12 +1104,9 @@ function MisaApiService() {
                     clog(`Order pushed to misa. Update order: ${omisell_order_number}`);
                     crmOrder.id = orderDb.misa_id;
                     misaId = orderDb.misa_id;
-                    console.time(`[MisaApiService.processNewOrderFromWebhook] - updateCrmObjects ${omisell_order_number}`)
                     await SELF.updateCrmObjects({ select: 'SaleOrders', items: [crmOrder], token, clientId: SELF.AMIS_CLIENT_ID, crmUrl: SELF.AMIS_CRM_URL })
-                    console.timeEnd(`[MisaApiService.processNewOrderFromWebhook] - updateCrmObjects ${omisell_order_number}`)
 
                 } else {
-                    console.time(`[MisaApiService.processNewOrderFromWebhook] - addCrmObjects ${omisell_order_number}`)
                     try {
                         misaId = await SELF.addCrmObjects({
                             select: 'SaleOrders',
@@ -1149,7 +1131,6 @@ function MisaApiService() {
                         });
                         misaId = updateResult || orderDb?.misa_id;
                     }
-                    console.timeEnd(`[MisaApiService.processNewOrderFromWebhook] - addCrmObjects ${omisell_order_number}`)
                 }
                 clog(`Push SUCCESS | omisell_order_number=${omisell_order_number} | misaId=${misaId}`);
 
