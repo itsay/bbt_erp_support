@@ -24,12 +24,8 @@ function WebhookController() {
          */
         jobProcessNewOrders: async (noOrders = 100) => {
             console.log(`[WebhookController.jobProcessNewOrders] - start processing new orders, noOrders: ${noOrders}`);
-            console.time('[WebhookController.jobProcessNewOrders] - jobProcessNewOrders')
             const lock = await RedisController.storeAtomic('PROCESS_WEBHOOK_ORDERS', '1', 600)
-            if (!lock) {
-                console.log('[WebhookController.jobProcessNewOrders] - process new orders is locked');
-                return;
-            }
+            if (!lock) return;
             try {
                 const webhookData = await WebhookEvent.find(
                     { handle_status: StatusWebhookEnum.PENDING },
@@ -66,7 +62,6 @@ function WebhookController() {
                     let lastError = null
                     let success = false
                     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-                        console.time(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
                         try {
                             const type = data.event?.split('.')?.[0];
                             const action = data.event?.split('.')?.[1];
@@ -78,7 +73,6 @@ function WebhookController() {
                             lastError = e
                             console.log(`[WebhookController.jobProcessNewOrders] - process new order failed (attempt ${attempt}/${MAX_RETRIES})`, JSON.stringify(e))
                         }
-                        console.timeEnd(`[WebhookController.jobProcessNewOrders] - process new order ${data.order_number}`)
                         if (success) break
                     }
                     const query = data.orderNo
@@ -95,7 +89,6 @@ function WebhookController() {
             } finally {
                 RedisController.delKey('PROCESS_WEBHOOK_ORDERS')
             }
-            console.timeEnd('[WebhookController.jobProcessNewOrders] - jobProcessNewOrders')
         }
     }
 }
