@@ -31,7 +31,10 @@ function WebhookController() {
                 return;
             }
             try {
-                const webhookData = await WebhookEvent.find({ handle_status: StatusWebhookEnum.PENDING }).sort({ receivedAt: 1 }).limit(noOrders).lean()
+                const webhookData = await WebhookEvent.find(
+                    { handle_status: StatusWebhookEnum.PENDING },
+                    { order_number: 1, data: 1, event: 1, receivedAt: 1 }
+                ).sort({ receivedAt: 1 }).limit(noOrders).lean()
 
                 // Đã sort tăng dần receivedAt, nên duyệt ngược để lấy luôn webhook mới nhất theo (type, orderNo)
                 const grouped = new Map();
@@ -46,7 +49,7 @@ function WebhookController() {
                             grouped.set(key, { latest: d, orderNo, isOrderGroup: true });
                             orderGroupedOrderNos.add(orderNo);
                         }
-                    } 
+                    }
                     // else {
                     //     const key = `others_${d._id}`;
                     //     grouped.set(key, { latest: d, orderNo, isOrderGroup: false });
