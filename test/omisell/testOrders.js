@@ -34,8 +34,8 @@ mongoose.Promise = global.Promise;
 
 
 async function test() {
-    const data = await OmisellApiService.getOrderDetail('ODVN2603035EDB9F9D')
-    console.log(JSON.stringify(data, null, 2))
+    await OmisellJobController.jobSaveOrders(7 * 86400)
+    console.log('done')
 }
 
 test()
