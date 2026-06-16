@@ -54,26 +54,35 @@ function OmisellApiService() {
             }
         },
         requestOmiWithAuth: async (endpoint, options = {}) => {
-            if (!SELF.config.accessToken) await SELF.getToken();
-            const headers = {
-                ...options.headers,
-                Authorization: `Omi ${SELF.config.accessToken}`,
-                'Content-Type': 'application/json'
-            };
-            const response = await fetch(endpoint, { ...options, headers });
-            if (response.status === 401 || response.status === 403) {
-                await SELF.refreshAccessToken();
-                const retryHeaders = {
+            try {
+                if (!SELF.config.accessToken) await SELF.getToken();
+                const headers = {
                     ...options.headers,
                     Authorization: `Omi ${SELF.config.accessToken}`,
                     'Content-Type': 'application/json'
                 };
-                const retryResponse = await fetch(endpoint, { ...options, headers: retryHeaders });
-                if (!retryResponse.ok) throw new Error(`Request failed: ${retryResponse.status}`);
-                return await retryResponse.json();
+                const response = await fetch(endpoint, { ...options, headers });
+                if (response.status === 401 || response.status === 403) {
+                    await SELF.refreshAccessToken();
+                    const retryHeaders = {
+                        ...options.headers,
+                        Authorization: `Omi ${SELF.config.accessToken}`,
+                        'Content-Type': 'application/json'
+                    };
+                    const retryResponse = await fetch(endpoint, { ...options, headers: retryHeaders });
+                    const data = await retryResponse.json();
+                    if (!retryResponse.ok) return Promise.reject(`[OmisellApiService.requestOmiWithAuth] Retry failed: ${JSON.stringify(data)}`);
+                    return data;
+
+                }
+                const data = await response.json();
+                if (!response.ok) {
+                    return Promise.reject(`[OmisellApiService.requestOmiWithAuth] Request failed: ${JSON.stringify(data)}`);
+                };
+                return data;
+            } catch (error) {
+                console.log(`[OmisellApiService.requestOmiWithAuth] Error:`, error.stack);
             }
-            if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-            return await response.json();
         },
         buildQuery: (params = {}) => {
             const qp = new URLSearchParams();
@@ -101,7 +110,7 @@ function OmisellApiService() {
                     const url = qs ? `${base}?${qs}` : base;
                     return await SELF.requestOmiWithAuth(url, { method: 'GET' });
                 } catch (error) {
-                    console.log(`Get orders failed (attempt ${attempt}/${maxRetries}):`, error.message);
+                    console.log(`Get orders failed (attempt ${attempt}/${maxRetries}):`, error);
                     if (attempt < maxRetries && error?.data?.retry_after) {
                         await Util.sleep(error.data.retry_after);
                     } else if (attempt === maxRetries) {

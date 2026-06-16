@@ -9,7 +9,7 @@ function OmisellJobController() {
         fetchAndSaveOrders: async (updatedTime) => {
             const clog = (msg, ...args) => console.log(`[OmisellJobController.fetchAndSaveOrders] - ${msg}`, ...args);
             clog('Start fetching orders');
-            const pageSize = 100
+            const pageSize = 50
             let page = 1
 
             let processed = 0
@@ -213,8 +213,8 @@ function OmisellJobController() {
         jobSavePickups: async () => {
             await SELF.fetchAndSavePickups();
         },
-        test: async () => {
-            await SELF.fetchAndSaveOrders(1769878800);
+        test: async (t) => {
+            await SELF.fetchAndSaveOrders(t);
         },
     }
 }
