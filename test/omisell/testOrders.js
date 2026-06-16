@@ -34,6 +34,6 @@ mongoose.connect(
 
 
 async function test() {
-    await OmisellJobController.jobSaveOrders(7 * 86400)
+    await OmisellJobController.jobSaveOrders(1 * 86400)
     console.log('done')
 }
