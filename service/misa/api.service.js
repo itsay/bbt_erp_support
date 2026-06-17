@@ -422,7 +422,7 @@ function MisaApiService() {
             const mappedAccountName = getAccountName(src.platform, src.shop_id);
 
             const pickupInfo = firstParcel?.pickup_id ? pickups.find(p => p.id === firstParcel.pickup_id) || {} : {};
-            const warehouse_code = SELF.warehouses.find(w => w.warehouse_name.trim().toLowerCase() === pickupInfo.pickup_name.trim().toLowerCase())?.warehouse_code || '';
+            const warehouse_code = SELF.warehouses.find(w => w.warehouse_name.trim().toLowerCase() === pickupInfo?.pickup_name?.trim().toLowerCase())?.warehouse_code || '';
 
             const buildItem = (ii, idx) => {
                 const inv = ii || {};
