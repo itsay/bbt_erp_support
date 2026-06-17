@@ -677,7 +677,7 @@ function MisaApiService() {
             );
             await Order.update(
                 { omisell_order_number: { $in: omisell_order_numbers } },
-                { $set: { misa_status: StatusWebhook.PENDING, misa_sent_time: sentAt } }
+                { $set: { misa_status: StatusWebhook.PENDING, misa_sent_time: new Date() } }
             )
             let success = 0, fail = 0;
             for (let i = 0; i < docs.length; i++) {
