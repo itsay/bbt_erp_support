@@ -456,7 +456,7 @@ function MisaApiService() {
                     description: inv.product_name || '',
                     amount: quantity,
                     price: basePrice, // đơn giá (trước thuế)
-                    usage_unit: '',
+                    usage_unit: null,
                     discount: discountValue,
                     discount_percent: Number(discountPercent.toFixed(2)),
                     ratio: 1,
