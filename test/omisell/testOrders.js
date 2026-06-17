@@ -37,7 +37,6 @@ async function test() {
     // await OmisellJobController.jobSaveOrders(1 * 86400)
     const data = await Order.find({updatedAt: {$gte: new Date('2026-06-16')}}).lean()
     const omisell_order_numbers = data.map(d => d.omisell_order_number)
-    data = null
     await MisaApiService.processNewOrders(omisell_order_numbers);
     console.log('done')
 }
